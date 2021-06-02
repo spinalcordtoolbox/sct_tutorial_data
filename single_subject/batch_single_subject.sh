@@ -13,7 +13,13 @@ trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
 # display starting time:
 echo -e "\nStarted at: $(date +%x_%r)"
 
-
+# If fsleyes hasn't been installed, provide a subsitute function to avoid crashing the script
+# Source: https://unix.stackexchange.com/a/497540
+if ! command -v fsleyes > /dev/null; then
+  fsleyes() {
+    printf 'WARNING: FSLeyes is not installed, so the following command was skipped:\nfsleyes %s\n' "$*";
+  };
+fi
 
 # SC segmentation
 # ===========================================================================================
