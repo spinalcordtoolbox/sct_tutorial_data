@@ -24,4 +24,4 @@ If you've written or modified a tutorial for SCT, you'll need to do 4 things:
     * Then, it packages up sets of data files into `.zip` downloads. 
     * Finally, it creates a new release with the tutorial-specific `.zip` files attached.
 4. In the SCT pull request for your tutorial changes, go to the [`conf.py`](https://github.com/spinalcordtoolbox/spinalcordtoolbox/blob/master/documentation/source/conf.py) file and update `extlinks` to point to your new release tag.
-    * **Note:** The reason we don't use an automatically updating "latest" link is to prevent any changes from silently breaking old documentation pages.
+    * **Note:** The reason we don't use an automatically updating "latest" link is to prevent any future changes from silently breaking old documentation pages.
