@@ -23,4 +23,4 @@ If you've written or modified a tutorial for SCT, you'll need to do 4 things:
     * First, it executes the [`batch_single_subject.sh`](https://github.com/spinalcordtoolbox/sct_tutorial_data/blob/master/single_subject/batch_single_subject.sh) script to generate all of the necessary files.
     * Then, it packages up sets of data files into `.zip` downloads. 
     * Finally, it creates a new release with the tutorial-specific `.zip` files attached.
-4. In the SCT pull request for your tutorial changes, go to the `conf.py` file and update the link with the new release.
+4. In the SCT pull request for your tutorial changes, go to the [`conf.py`](https://github.com/spinalcordtoolbox/spinalcordtoolbox/blob/master/documentation/source/conf.py) file and update `extlinks` to point to your new release tag.
