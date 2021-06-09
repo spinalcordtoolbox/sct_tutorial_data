@@ -2,10 +2,13 @@
 #
 # Example of commands to process multi-parametric data of the spinal cord
 # For information about acquisition parameters, see: www.spinalcordmri.org/protocols
-# N.B. The parameters are set for these type of data. With your data, parameters
-# might be slightly different.
+# N.B. The parameters were chosen to suit SCT's sample tutorial data. With your data,
+# it is worthwhile to explore the various parameters and tweak them to your situation.
 #
-# tested with Spinal Cord Toolbox (v4.2.1)
+# tested with Spinal Cord Toolbox (v5.3.0)
+
+# Script utilities
+# ===========================================================================================
 
 # Exit if user presses CTRL+C (Linux) or CMD+C (OSX)
 trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
@@ -21,36 +24,46 @@ if ! command -v fsleyes > /dev/null; then
   };
 fi
 
-# SC segmentation
+# ===========================================================================================
+# START OF SCRIPT
+# ===========================================================================================
+
+
+
+# Spinal cord segmentation
 # ===========================================================================================
 
 # Go to T2 contrast
 cd data/t2
 # Spinal cord segmentation
 sct_propseg -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
-# To check the QC report, double click on the file qc_singleSubj/qc/index.html which has been created in your home directory
+# To check the QC report, use your web browser to open the file qc_singleSubj/qc/index.html, which has been created in
+# your home directory
 
 # Go to T1 contrast
 cd ../t1
 # Spinal cord segmentation
 sct_propseg -i t1.nii.gz -c t1 -qc ~/qc_singleSubj
-# Check QC report: Go to your browser and do "refresh". You notice the segmentation is "leaking"
+# Check QC report: Go to your browser and do "refresh". Notice that the segmentation is "leaking".
 # Try another algorithm based on deep-learning
-sct_deepseg_sc -i t1.nii.gz -c t1 -ofolder deepseg -qc ~/qc_singleSubj
-# Check QC report: Go to your browser and do "refresh".
-# Optional: Check results in FSLeyes. In red: PropSeg, in green: DeepSeg. Tips: use CMD+f (or CTRL+f on Linux) to switch overlay on/off.
+sct_deepseg_sc -i t1.nii.gz -c t1 -qc ~/qc_singleSubj -ofolder deepseg
+# Check QC report: Go to your browser and do "refresh". Notice that the leakage is fixed.
+# Optional: Check results in FSLeyes. In red: PropSeg, in green: DeepSeg. Tips: use the right arrow key to switch
+#           overlay on/off.
 fsleyes t1.nii.gz -cm greyscale t1_seg.nii.gz -cm red -a 70.0 deepseg/t1_seg.nii.gz -cm green -a 70.0 &
 
 
 
-# Registration
+# Vertebral labeling
 # ===========================================================================================
 
 cd ../t2
 # Vertebral labeling
 sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -qc ~/qc_singleSubj
 # Check QC report: Go to your browser and do "refresh".
-# Note: Here, two files are output: t2_seg_labeled, which represents the labeled segmentation (i.e., the value corresponds to the vertebral level), and t2_seg_labeled_discs, which only has a single point for each inter-vertebral disc level. The convention is: Value 3 —> C2-C3 disc, Value 4 —> C3-C4 disc, etc.
+# Note: Here, two files are output: t2_seg_labeled, which represents the labeled segmentation (i.e., the value
+#       corresponds to the vertebral level), and t2_seg_labeled_discs, which only has a single point for each
+#       inter-vertebral disc level. The convention is: Value 3 —> C2-C3 disc, Value 4 —> C3-C4 disc, etc.
 
 # If automatic labeling did not work, you can initialize with manual identification of C2-C3 disc:
 sct_label_utils -i t2.nii.gz -create-viewer 3 -o label_c2c3.nii.gz -msg "Click at the posterior tip of C2/C3 inter-vertebral disc"
@@ -59,57 +72,96 @@ sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -initlabel label_c2c3.ni
 # Create labels at C3 and T2 mid-vertebral levels. These labels are needed for template registration.
 sct_label_utils -i t2_seg_labeled.nii.gz -vert-body 3,9 -o t2_labels_vert.nii.gz
 
-# You might want to completely bypass sct_label_vertebrae and do the labeling manually. In that case, we provide a viewer to do so conveniently.
-# In the example below, we will create labels at the inter-vertebral discs C2-C3 (value=3), C3-C4 (value=4) and C4-C5 (value=5).
-# sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
+# You might want to completely bypass sct_label_vertebrae and do the labeling manually. In that case, we provide a
+# viewer to do so conveniently. In the example command below, we will create labels at the inter-vertebral discs C2-C3
+# (value=3), C3-C4 (value=4) and C4-C5 (value=5).
+
+# sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz \
+#                 -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
+
+
+
+
+# Registratering T2 data to the PAM50 template
+# ===========================================================================================
 
 # Register t2->template.
 sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -l t2_labels_vert.nii.gz -c t2 -qc ~/qc_singleSubj
 # Note: By default the PAM50 template is selected. You can also select your own template using flag -t.
 
-# Warp template objects (T2, cord segmentation, vertebral levels, etc.). Here we use -a 0 because we don’t need the white matter atlas at this point.
+# Warp template objects (T2, cord segmentation, vertebral levels, etc.). Here we use -a 0 because we don’t need the
+# white matter atlas at this point.
 sct_warp_template -d t2.nii.gz -w warp_template2anat.nii.gz -a 0 -qc ~/qc_singleSubj
-# Note: A folder label/template/ is created, which contains template objects in the space of the subject. The file info_label.txt lists all template files.
-# Check results using Fsleyes. Tips: use CMD+f (or CTRL+f on Linux) to switch overlay on/off.
-fsleyes t2.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
+# Note: A folder label/template/ is created, which contains template objects in the space of the subject. The file
+#       info_label.txt lists all template files.
+
+# Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
+fsleyes t2.nii.gz -cm greyscale -a 100.0 \
+        label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 \
+        label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 \
+        label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
+
+
+
+# Computing shape metrics
+# ===========================================================================================
 
 # Compute cross-sectional area (CSA) of spinal cord and average it across levels C3 and C4
-sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -o csa_c3c4.csv
-# Note: the -vert flag assumes the existence of the vertebral labeling file: ./label/template/PAM50_level.nii.gz.
-
+sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile ./label/template/PAM50_levels.nii.gz -o csa_c3c4.csv
 # Aggregate CSA value per level
-sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -perlevel 1 -o csa_perlevel.csv
+sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile ./label/template/PAM50_levels.nii.gz -perlevel 1 -o csa_perlevel.csv
 # Aggregate CSA value per slices
 sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -perslice 1 -o csa_perslice.csv
+
+
+
+# Registering additional MT data to the PAM50 template
+# ===========================================================================================
 
 # Go to mt folder
 cd ../mt
 # Segment cord
 sct_deepseg_sc -i mt1.nii.gz -c t2 -qc ~/qc_singleSubj
 
-# Create a close mask around the spinal cord for more accurate registration (i.e. does not account for surrounding tissue which could move independently from the cord)
+# Create a close mask around the spinal cord for more accurate registration (i.e. does not account for surrounding
+# tissue which could move independently from the cord)
 sct_create_mask -i mt1.nii.gz -p centerline,mt1_seg.nii.gz -size 35mm -f cylinder -o mask_mt1.nii.gz
 
+# Register template->mt1. The flag -initwarp ../t2/warp_template2anat.nii.gz initializes the registration using the
+# template->t2 transformation which was previously estimated
+sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz \
+                        -d mt1.nii.gz -dseg mt1_seg.nii.gz \
+                        -m mask_mt1.nii.gz -initwarp ../t2/warp_template2anat.nii.gz \
+                        -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3  \
+                        -owarp warp_template2mt.nii.gz -qc ~/qc_singleSubj
+# Tips: Here we only use the segmentations (type=seg) to minimize the sensitivity of the registration procedure to
+#       image artifacts.
+# Tips: Step 1: algo=centermass to align source and destination segmentations, then Step 2: algo=bpslinesyn to adapt the
+#       shape of the cord to the mt modality (in case there are distortions between the t2 and the mt scan).
+
+# Warp template
+sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -a 1 -qc ~/qc_singleSubj
+# Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
+fsleyes mt1.nii.gz -cm greyscale -a 100.0 \
+        label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 \
+        label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 \
+        label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
+
+
+
+# Computing MTR
+# ===========================================================================================
+
 # Register mt0->mt1 using z-regularized slicewise translations (algo=slicereg)
-sct_register_multimodal -i mt0.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -param step=1,type=im,algo=slicereg,metric=CC -m mask_mt1.nii.gz -x spline -qc ~/qc_singleSubj
-# Check results using Fsleyes. Tips: use CMD+f (or CTRL+f on Linux) to switch overlay on/off.
+sct_register_multimodal -i mt0.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz \
+                        -param step=1,type=im,algo=slicereg,metric=CC -x spline -qc ~/qc_singleSubj
+
+# Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
 fsleyes mt1.nii.gz mt0_reg.nii.gz &
 
 # Compute MTR
-# Note: MTR is given in percentage.
 sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
-
-# Register template->mt1. The flag -initwarp ../t2/warp_template2anat.nii.gz initializes the registration using the template->t2 transformation which was previously estimated
-# Tips: Here we only use the segmentations (type=seg) to minimize the sensitivity of the registration procedure to image artifacts.
-# Tips: First step: algo=centermass to align source and destination segmentations, then algo=bpslinesyn to adapt the shape of the cord to the mt modality (in case there are distortions between the t2 and the mt scan).
-sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -m mask_mt1.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -qc ~/qc_singleSubj
-
-# Rename warping field for clarity
-mv warp_PAM50_t22mt1.nii.gz warp_template2mt.nii.gz
-# Warp template
-sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -qc ~/qc_singleSubj
-# Check results using Fsleyes. Tips: use CMD+f (or CTRL+f on Linux) to switch overlay on/off.
-fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
+# Note: MTR is given in percentage.
 
 
 
