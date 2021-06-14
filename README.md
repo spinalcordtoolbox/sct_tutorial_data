@@ -1,4 +1,4 @@
-# sct_tutorial_data
+# `sct_tutorial_data`
 
 This dataset contains image files required for the **[Spinal Cord Toolbox tutorials](https://spinalcordtoolbox.com/en/latest/tutorials/tutorials.html)**. It also contains two scripts with all of the tutorial commands, to demonstrate how commands can be linked together to form a pipeline.
 
