@@ -1,18 +1,18 @@
 # sct_tutorial_data
 
-This repository contains image files required for the **[Spinal Cord Toolbox tutorials](https://spinalcordtoolbox.com/en/latest/tutorials/tutorials.html)**. It also contains scripts with all of the tutorial commands to demonstrate how commands can be linked together to form a pipeline.
+This dataset contains image files required for the **[Spinal Cord Toolbox tutorials](https://spinalcordtoolbox.com/en/latest/tutorials/tutorials.html)**. It also contains two scripts with all of the tutorial commands, to demonstrate how commands can be linked together to form a pipeline.
 
-## Using this repo
+## Using this dataset
 
-There are three ways to use this repo:
+There are three ways to use this dataset:
 
 1. Download the entire `sct_tutorial_data` dataset ([Releases](https://github.com/spinalcordtoolbox/sct_tutorial_data/releases/latest) -> "[Source code (.zip)](https://github.com/spinalcordtoolbox/sct_tutorial_data/archive/refs/heads/master.zip)"), then follow along with each tutorial in the documentation from start to finish. (The tutorials link together.)
 2. Download the entire dataset, but use the included batch scripts ([`batch_single_subject.sh`](https://github.com/spinalcordtoolbox/sct_tutorial_data/blob/master/single_subject/batch_single_subject.sh) and [`process_data.sh`](https://github.com/spinalcordtoolbox/sct_tutorial_data/blob/master/multi_subject/process_data.sh)) to execute all of the commands together as a pipeline.
 3. Download a single dataset for a specific tutorial ([Releases](https://github.com/spinalcordtoolbox/sct_tutorial_data/releases/latest) -> e.g. "[`data_spinalcord-segmentation.zip`](https://github.com/spinalcordtoolbox/sct_tutorial_data/releases/latest/download/data_spinalcord-segmentation.zip)"), and complete just that tutorial.
 
-## Making changes to this repo
+## Making changes to this dataset
 
-If you've written or modified a tutorial for SCT, you'll need to do 4 things:
+If you've written or modified a tutorial for SCT, and your tutorial relies on certain files, updating this dataset requires 4 things:
 
 1. Update the batch scripts ([`batch_single_subject.sh`](https://github.com/spinalcordtoolbox/sct_tutorial_data/blob/master/single_subject/batch_single_subject.sh) and [`process_data.sh`](https://github.com/spinalcordtoolbox/sct_tutorial_data/blob/master/multi_subject/process_data.sh)) with any new or modified commands.
 2. Update the file [`tutorial-datasets.csv`](https://github.com/spinalcordtoolbox/sct_tutorial_data/blob/master/tutorial-datasets.csv) for your tutorial.
