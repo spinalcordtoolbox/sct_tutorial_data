@@ -3,14 +3,14 @@
 # Process data. This script should be run within the subject's folder.
 #
 # Usage:
-#   ./process_data.sh <SUBJECT> <FILEPARAM>
+#   ./process_data.sh <SUBJECT>
 #
 # Example:
-#   ./process_data.sh sub-03 parameters.sh
+#   ./process_data.sh sub-03
 #
 # Author: Julien Cohen-Adad
 
-# The following global variables are retrieved from parameters.sh but could be
+# The following global variables are retrieved from config.yml but could be
 # overwritten here:
 # PATH_QC="~/qc"
 
@@ -25,7 +25,6 @@ trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
 
 # Retrieve input params
 SUBJECT=$1
-FILEPARAM=$2
 
 
 # FUNCTIONS
@@ -69,8 +68,6 @@ segment_if_does_not_exist(){
 
 # SCRIPT STARTS HERE
 # ==============================================================================
-
-source $FILEPARAM
 
 # Go to results folder, where most of the outputs will be located
 cd $PATH_RESULTS
