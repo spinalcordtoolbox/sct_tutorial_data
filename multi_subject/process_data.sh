@@ -1,6 +1,7 @@
 #!/bin/bash
 #
-# Process data. This script should be run within the subject's folder.
+# Process data. This script is designed to be run in the folder for a single subject, however 'sct_run_batch' can be
+# used to run this script multiple times in parallel across a multi-subject BIDS dataset.
 #
 # Usage:
 #   ./process_data.sh <SUBJECT>
@@ -10,12 +11,11 @@
 #
 # Author: Julien Cohen-Adad
 
-# The following global variables are retrieved from config.yml but could be
-# overwritten here:
-# PATH_QC="~/qc"
+# BASH SETTINGS
+# ======================================================================================================================
 
 # Uncomment for full verbose
-set -v
+# set -v
 
 # Immediately exit if error
 set -e
@@ -23,16 +23,16 @@ set -e
 # Exit if user presses CTRL+C (Linux) or CMD+C (OSX)
 trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
 
-# Retrieve input params
-SUBJECT=$1
+# CONVENIENCE FUNCTIONS
+# ======================================================================================================================
 
-
-# FUNCTIONS
-# ==============================================================================
-
-# Check if manual label already exists. If it does, copy it locally. If it does
-# not, perform labeling.
 label_if_does_not_exist() {
+  ###
+  #  This function checks if a manual label file already exists, then:
+  #     - If it does, copy it locally.
+  #     - If it doesn't, perform automatic labeling.
+  #   This allows you to add manual labels on a subject-by-subject basis without disrupting the pipeline.
+  ###
   local file="$1"
   local file_seg="$2"
   # Update global variable with segmentation file name
@@ -48,9 +48,13 @@ label_if_does_not_exist() {
   fi
 }
 
-# Check if manual segmentation already exists. If it does, copy it locally. If
-# it does not, perform seg.
 segment_if_does_not_exist() {
+  ###
+  #  This function checks if a manual spinal cord segmentation file already exists, then:
+  #    - If it does, copy it locally.
+  #    - If it doesn't, perform automatic spinal cord segmentation.
+  #  This allows you to add manual segmentations on a subject-by-subject basis without disrupting the pipeline.
+  ###
   local file="$1"
   local contrast="$2"
   # Update global variable with segmentation file name
@@ -66,7 +70,13 @@ segment_if_does_not_exist() {
 }
 
 # SCRIPT STARTS HERE
-# ==============================================================================
+# ======================================================================================================================
+
+# The following global variables are retrieved from config.yml but could be overwritten by uncommenting:
+# PATH_QC="~/qc"
+
+# Retrieve input params
+SUBJECT=$1
 
 # Go to results folder, where most of the outputs will be located
 cd "${PATH_RESULTS}"
@@ -77,7 +87,7 @@ cd data
 cp -r "${PATH_DATA}/${SUBJECT}" .
 
 # T2w
-# =============================================================================
+# ======================================================================================================================
 cd "${SUBJECT}/anat/"
 file_t2="${SUBJECT}_T2w"
 # Segment spinal cord (only if it does not exist)
@@ -98,7 +108,7 @@ sct_process_segmentation -i "${file_t2_seg}.nii.gz" -vert 2:3 -vertfile label_T2
                          -o "${PATH_RESULTS}/CSA.csv" -append 1 -qc "${PATH_QC}"
 
 # MT
-# =============================================================================
+# ======================================================================================================================
 file_mt1="${SUBJECT}_acq-MTon_MTS"
 file_mt0="${SUBJECT}_acq-MToff_MTS"
 # Segment spinal cord
@@ -142,7 +152,7 @@ sct_extract_metric -i mtr.nii.gz -f label_MT/atlas -l 53 -vert 2:5 -vertfile lab
                    -method map -o "${PATH_RESULTS}/MTR_in_DC.csv" -append 1
 
 # Verify presence of output files and write log file if error
-# =============================================================================
+# ======================================================================================================================
 FILES_TO_CHECK=(
   "$file_t2_seg.nii.gz"
   "mtr.nii.gz"
