@@ -8,7 +8,7 @@
 # tested with Spinal Cord Toolbox (v5.3.0)
 
 # Script utilities
-# ===========================================================================================
+# ======================================================================================================================
 
 # Exit if user presses CTRL+C (Linux) or CMD+C (OSX)
 trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
@@ -24,14 +24,14 @@ if ! command -v fsleyes > /dev/null; then
   };
 fi
 
-# ===========================================================================================
+
+
+# ======================================================================================================================
 # START OF SCRIPT
-# ===========================================================================================
-
-
+# ======================================================================================================================
 
 # Spinal cord segmentation
-# ===========================================================================================
+# ======================================================================================================================
 
 # Go to T2 contrast
 cd data/t2
@@ -55,7 +55,7 @@ fsleyes t1.nii.gz -cm greyscale t1_seg.nii.gz -cm red -a 70.0 deepseg/t1_seg.nii
 
 
 # Vertebral labeling
-# ===========================================================================================
+# ======================================================================================================================
 
 cd ../t2
 # Vertebral labeling
@@ -83,7 +83,7 @@ sct_label_utils -i t2_seg_labeled.nii.gz -vert-body 3,9 -o t2_labels_vert.nii.gz
 
 
 # Registratering T2 data to the PAM50 template
-# ===========================================================================================
+# ======================================================================================================================
 
 # Register t2->template.
 sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -l t2_labels_vert.nii.gz -c t2 -qc ~/qc_singleSubj
@@ -104,7 +104,7 @@ fsleyes t2.nii.gz -cm greyscale -a 100.0 \
 
 
 # Computing shape metrics
-# ===========================================================================================
+# ======================================================================================================================
 
 # Compute cross-sectional area (CSA) of spinal cord and average it across levels C3 and C4
 sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile ./label/template/PAM50_levels.nii.gz -o csa_c3c4.csv
@@ -116,7 +116,7 @@ sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -perslice 1 -o csa_perslice.c
 
 
 # Registering additional MT data to the PAM50 template
-# ===========================================================================================
+# ======================================================================================================================
 
 # Go to mt folder
 cd ../mt
@@ -150,23 +150,21 @@ fsleyes mt1.nii.gz -cm greyscale -a 100.0 \
 
 
 # Computing MTR
-# ===========================================================================================
+# ======================================================================================================================
 
 # Register mt0->mt1 using z-regularized slicewise translations (algo=slicereg)
 sct_register_multimodal -i mt0.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz \
                         -param step=1,type=im,algo=slicereg,metric=CC -x spline -qc ~/qc_singleSubj
-
 # Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
 fsleyes mt1.nii.gz mt0_reg.nii.gz &
-
 # Compute MTR
 sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 # Note: MTR is given in percentage.
 
 
 
-# Gray matter segmentation
-# ===========================================================================================
+# Gray/white matter segmentation
+# ======================================================================================================================
 
 # Go to T2*-weighted data, which has good GM/WM contrast and high in-plane resolution
 cd ../t2s
@@ -177,34 +175,51 @@ sct_deepseg_gm -i t2s.nii.gz -qc ~/qc_singleSubj
 # Subtract GM segmentation from cord segmentation to obtain WM segmentation
 sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
 
+
+
+# Improving registration results using gray/white matter segmentations
+# ======================================================================================================================
+
 # Register template->t2s (using warping field generated from template<->t2 registration)
 # Tips: Here we use the WM seg for the iseg/dseg fields in order to account for both the cord and the GM shape.
-sct_register_multimodal -i ${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz -iseg ${SCT_DIR}/data/PAM50/template/PAM50_wm.nii.gz -d t2s.nii.gz -dseg t2s_wmseg.nii.gz -param step=1,type=seg,algo=rigid:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -qc ~/qc_singleSubj
+sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2s.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_wm.nii.gz \
+                        -d t2s.nii.gz -dseg t2s_wmseg.nii.gz \
+                        -param step=1,type=seg,algo=rigid:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
+                        -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz \
+                        -qc ~/qc_singleSubj
 # rename warping fields for clarity
 mv warp_PAM50_t2s2t2s.nii.gz warp_template2t2s.nii.gz
 mv warp_t2s2PAM50_t2s.nii.gz warp_t2s2template.nii.gz
 # Warp template
 sct_warp_template -d t2s.nii.gz -w warp_template2t2s.nii.gz -qc ~/qc_singleSubj
 
-# Compute cross-sectional area (CSA) of the gray and white matter for all slices in the volume.
-# Note: Here we use the flag -angle-corr 0, because we do not want to correct the computed CSA by the cosine of the angle between the cord centerline and the S-I axis: we assume that slices were acquired orthogonally to the cord.
-sct_process_segmentation -i t2s_gmseg.nii.gz -o csa_gm.csv -angle-corr 0
-sct_process_segmentation -i t2s_wmseg.nii.gz -o csa_wm.csv -angle-corr 0
-
 cd ../mt
 # Register template->mt via t2s to account for GM segmentation
-sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -m mask_mt1.nii.gz -initwarp ../t2s/warp_template2t2s.nii.gz
+sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz \
+                        -d mt1.nii.gz -dseg mt1_seg.nii.gz \
+                        -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
+                        -m mask_mt1.nii.gz \
+                        -initwarp ../t2s/warp_template2t2s.nii.gz \
+                        -qc ~/qc_singleSubj
 # Rename warping field for clarity
 mv warp_PAM50_t22mt1.nii.gz warp_template2mt.nii.gz
 # Warp template
 sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -qc ~/qc_singleSubj
 # Check results
-fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 100.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 100.0 &
+fsleyes mt1.nii.gz -cm greyscale -a 100.0 \
+        label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 \
+        label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 100.0 \
+        label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 100.0 &
 
 
 
-# Atlas-based analysis
-# ===========================================================================================
+# Computing metrics for gray/white matter (including atlas-based tract analysis)
+# ======================================================================================================================
+
+# Compute cross-sectional area (CSA) of the gray and white matter for all slices in the volume.
+# Note: Here we use the flag -angle-corr 0, because we do not want to correct the computed CSA by the cosine of the angle between the cord centerline and the S-I axis: we assume that slices were acquired orthogonally to the cord.
+sct_process_segmentation -i t2s_gmseg.nii.gz -o csa_gm.csv -angle-corr 0
+sct_process_segmentation -i t2s_wmseg.nii.gz -o csa_wm.csv -angle-corr 0
 
 # Extract MTR for each slice within the white matter (combined label: #51)
 # Tips: To list all available labels, type: "sct_extract_metric"
@@ -215,7 +230,9 @@ sct_extract_metric -i mtr.nii.gz -method map -l 4,5 -z 5:15 -o mtr_in_cst.csv
 # You can specify the vertebral levels to extract MTR from. For example, to quantify MTR between C2 and C4 levels in the dorsal column (combined label: #53) using weighted average:
 sct_extract_metric -i mtr.nii.gz -method wa -l 53 -vert 2:4 -o mtr_in_dc.csv
 
-# You can also use a single binary mask instead of the probabilistic atlas to extract signal from MRI data. The example below will show how to use the GM and WM segmentations to quantify T2* signal as done in [Martin et al. PLoS One 2018].
+# You can also use a single binary mask instead of the probabilistic atlas to extract signal intensity from MRI data.
+# The example below will show how to use the GM and WM segmentations to quantify T2* signal intensity, as done in
+# [Martin et al. PLoS One 2018].
 cd ../t2s
 # Quantify average WM and GM signal between slices 2 and 12.
 sct_extract_metric -i t2s.nii.gz -f t2s_wmseg.nii.gz -method bin -z 2:12 -o t2s_value.csv
@@ -225,8 +242,10 @@ sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_
 
 
 # Diffusion-weighted MRI
-# ===========================================================================================
+# ======================================================================================================================
+
 cd ../dmri
+# Preprocessing stepsgi
 # Compute mean dMRI from dMRI data
 sct_maths -i dmri.nii.gz -mean t -o dmri_mean.nii.gz
 # Segment SC on mean dMRI data
@@ -264,7 +283,7 @@ cd ..
 
 
 # Other features
-# ===========================================================================================
+# ======================================================================================================================
 
 # Smooth spinal cord along centerline (extracted from the segmentation)
 cd t1
@@ -277,7 +296,7 @@ cd ..
 
 
 # Functional MRI
-# ===========================================================================================
+# ======================================================================================================================
 cd fmri
 # Average all fMRI time series to make it a 3D volume (needed by the next command)
 sct_maths -i fmri.nii.gz -mean t -o fmri_mean.nii.gz
