@@ -48,10 +48,17 @@ jobs:
     - name: Run sct_run_batch -s process_data.sh
       run: |
         cd "${{ github.event.repository.name }}/multi_subject"
-        sct_run_batch -script process_data.sh -d
+        sct_run_batch -script process_data.sh -config config.yml
 
-    - name: Assert that script executed without error
+    - name: Output full log for sanity checking
+      run: |
+        cd "${{ github.event.repository.name }}/multi_subject/output/log"
+        cat process_data_sub-01.log
+
+    - name: Check that script executed without error
       run: |
         cd "${{ github.event.repository.name }}/multi_subject/output/log"
         [ "$(compgen -G "process_data_sub-0*.log")" ]        # Log files should exist
         [ ! "$(compgen -G "err.process_data_sub-0*.log")" ]  # Error files should NOT exist
+        grep -iF "warning" process_data_sub-01.log
+        grep -iF "error" process_data_sub-01.log
