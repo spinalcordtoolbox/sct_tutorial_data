@@ -59,7 +59,7 @@ jobs:
     - name: "Package data into tutorial-specific .zip files"
       run: |
         cd ${{ github.event.repository.name }}
-        awk -F, '{ print $1,$2 }' tutorial-datasets.csv | xargs -l zip -u
+        awk -F, '{ print $1,$2 }' tutorial-datasets.csv | xargs -l zip -ur
       if: github.event_name == 'workflow_dispatch'
 
     - uses: ncipollo/release-action@v1
