@@ -10,6 +10,9 @@
 # Script utilities
 # ======================================================================================================================
 
+# If a command fails, set -e will make the whole script exit, instead of just resuming on the next line
+set -e
+
 # Exit if user presses CTRL+C (Linux) or CMD+C (OSX)
 trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
 
@@ -217,8 +220,8 @@ cd ../t2s
 # Compute cross-sectional area (CSA) of the gray and white matter for all slices in the volume.
 # Note: Here we use the flag -angle-corr 0, because we do not want to correct the computed CSA by the cosine of the
 # angle between the cord centerline and the S-I axis: we assume that slices were acquired orthogonally to the cord.
-sct_process_segmentation -i t2s_gmseg.nii.gz -o csa_gm.csv -angle-corr 0
 sct_process_segmentation -i t2s_wmseg.nii.gz -o csa_wm.csv -angle-corr 0
+sct_process_segmentation -i t2s_gmseg.nii.gz -o csa_gm.csv -angle-corr 0
 
 # You can also use a single binary mask to extract signal intensity from MRI data.
 # The example below will show how to use the GM and WM segmentations to quantify T2* signal intensity, as done in
@@ -349,7 +352,7 @@ fsleyes --scene lightbox --hideCursor fmri_moco_mean.nii.gz -cm greyscale -dr 0 
 # ======================================================================================================================
 
 # Smooth spinal cord along centerline (extracted from the segmentation)
-cd t1
+cd ../t1
 sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
 # Tips: use flag "-sigma" to specify smoothing kernel size (in mm)
 
