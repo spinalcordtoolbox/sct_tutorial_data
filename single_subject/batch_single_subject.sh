@@ -168,10 +168,10 @@ sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 
 # Go to T2*-weighted data, which has good GM/WM contrast and high in-plane resolution
 cd ../t2s
-# Spinal cord segmentation
-sct_deepseg_sc -i t2s.nii.gz -c t2s -qc ~/qc_singleSubj
 # Segment gray matter (check QC report afterwards)
 sct_deepseg_gm -i t2s.nii.gz -qc ~/qc_singleSubj
+# Spinal cord segmentation
+sct_deepseg_sc -i t2s.nii.gz -c t2s -qc ~/qc_singleSubj
 # Subtract GM segmentation from cord segmentation to obtain WM segmentation
 sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
 
@@ -182,103 +182,166 @@ sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
 
 # Register template->t2s (using warping field generated from template<->t2 registration)
 # Tips: Here we use the WM seg for the iseg/dseg fields in order to account for both the cord and the GM shape.
-sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2s.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_wm.nii.gz \
-                        -d t2s.nii.gz -dseg t2s_wmseg.nii.gz \
+sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" \
+                        -iseg "${SCT_DIR}/data/PAM50/template/PAM50_wm.nii.gz" \
+                        -d t2s.nii.gz \
+                        -dseg t2s_wmseg.nii.gz \
+                        -initwarp ../t2/warp_template2anat.nii.gz \
+                        -initwarpinv ../t2/warp_anat2template.nii.gz \
                         -param step=1,type=seg,algo=rigid:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
-                        -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz \
                         -qc ~/qc_singleSubj
 # rename warping fields for clarity
 mv warp_PAM50_t2s2t2s.nii.gz warp_template2t2s.nii.gz
 mv warp_t2s2PAM50_t2s.nii.gz warp_t2s2template.nii.gz
-# Warp template
-sct_warp_template -d t2s.nii.gz -w warp_template2t2s.nii.gz -qc ~/qc_singleSubj
 
 cd ../mt
 # Register template->mt via t2s to account for GM segmentation
-sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz \
-                        -d mt1.nii.gz -dseg mt1_seg.nii.gz \
+sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2.nii.gz" \
+                        -iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" \
+                        -d mt1.nii.gz \
+                        -dseg mt1_seg.nii.gz \
                         -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
                         -m mask_mt1.nii.gz \
                         -initwarp ../t2s/warp_template2t2s.nii.gz \
                         -qc ~/qc_singleSubj
 # Rename warping field for clarity
 mv warp_PAM50_t22mt1.nii.gz warp_template2mt.nii.gz
-# Warp template
-sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -qc ~/qc_singleSubj
-# Check results
-fsleyes mt1.nii.gz -cm greyscale -a 100.0 \
-        label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 \
-        label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 100.0 \
-        label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 100.0 &
 
 
 
 # Computing metrics for gray/white matter (including atlas-based tract analysis)
 # ======================================================================================================================
 
+# Metrics using WM/GM mask only (no atlas)
+cd ../t2s
 # Compute cross-sectional area (CSA) of the gray and white matter for all slices in the volume.
-# Note: Here we use the flag -angle-corr 0, because we do not want to correct the computed CSA by the cosine of the angle between the cord centerline and the S-I axis: we assume that slices were acquired orthogonally to the cord.
+# Note: Here we use the flag -angle-corr 0, because we do not want to correct the computed CSA by the cosine of the
+# angle between the cord centerline and the S-I axis: we assume that slices were acquired orthogonally to the cord.
 sct_process_segmentation -i t2s_gmseg.nii.gz -o csa_gm.csv -angle-corr 0
 sct_process_segmentation -i t2s_wmseg.nii.gz -o csa_wm.csv -angle-corr 0
 
-# Extract MTR for each slice within the white matter (combined label: #51)
-# Tips: To list all available labels, type: "sct_extract_metric"
-sct_extract_metric -i mtr.nii.gz -method map -l 51 -o mtr_in_wm.csv
-
-# Extract MTR within the right and left corticospinal tract and aggregate across specific slices
-sct_extract_metric -i mtr.nii.gz -method map -l 4,5 -z 5:15 -o mtr_in_cst.csv
-# You can specify the vertebral levels to extract MTR from. For example, to quantify MTR between C2 and C4 levels in the dorsal column (combined label: #53) using weighted average:
-sct_extract_metric -i mtr.nii.gz -method wa -l 53 -vert 2:4 -o mtr_in_dc.csv
-
-# You can also use a single binary mask instead of the probabilistic atlas to extract signal intensity from MRI data.
+# You can also use a single binary mask to extract signal intensity from MRI data.
 # The example below will show how to use the GM and WM segmentations to quantify T2* signal intensity, as done in
 # [Martin et al. PLoS One 2018].
-cd ../t2s
 # Quantify average WM and GM signal between slices 2 and 12.
 sct_extract_metric -i t2s.nii.gz -f t2s_wmseg.nii.gz -method bin -z 2:12 -o t2s_value.csv
 sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_value.csv -append 1
 # Note: the flag -append enables to append a new result at the end of an already-existing csv file.
 
+# Atlas-based tract analysis
+cd ../mt
+# In order to use the PAM50 atlas to extract/aggregate image data, the atlas must first be transformed to the MT space
+sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -a 1 -qc ~/qc_singleSubj
+# Check results
+fsleyes mt1.nii.gz -cm greyscale -a 100.0 \
+        label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 \
+        label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 100.0 \
+        label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 100.0 &
+
+# Extract MTR for each slice within the white matter (combined label: #51)
+# Tips: To list all available labels, type: "sct_extract_metric"
+sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 51 -o mtr_in_wm.csv
+
+# Extract MTR within the right and left corticospinal tract and aggregate across specific slices
+sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 4,5 -z 5:15 -o mtr_in_cst.csv
+# You can specify the vertebral levels to extract MTR from. For example, to quantify MTR between C2 and C4 levels in the
+# dorsal column (combined label: #53) using weighted average:
+sct_extract_metric -i mtr.nii.gz -f label/atlas -method wa -l 53 -vert 2:4 -o mtr_in_dc.csv
 
 
 # Diffusion-weighted MRI
 # ======================================================================================================================
 
 cd ../dmri
-# Preprocessing stepsgi
+# Preprocessing steps
 # Compute mean dMRI from dMRI data
 sct_maths -i dmri.nii.gz -mean t -o dmri_mean.nii.gz
 # Segment SC on mean dMRI data
 # Note: This segmentation does not need to be accurate-- it is only used to create a mask around the cord
-sct_propseg -i dmri_mean.nii.gz -c dwi -qc ~/qc_singleSubj
+sct_deepseg_sc -i dmri_mean.nii.gz -c dwi -qc ~/qc_singleSubj
 # Create mask (for subsequent cropping)
-sct_create_mask -i dmri_mean.nii.gz -p centerline,dmri_mean_seg.nii.gz -size 35mm
+sct_create_mask -i dmri_mean.nii.gz -p centerline,dmri_mean_seg.nii.gz -f cylinder -size 35mm
 # Crop data for faster processing
 sct_crop_image -i dmri.nii.gz -m mask_dmri_mean.nii.gz -o dmri_crop.nii.gz
 
 # Motion correction (moco)
 sct_dmri_moco -i dmri_crop.nii.gz -bvec bvecs.txt
 
+# Compute DTI metrics using dipy [1]
+sct_dmri_compute_dti -i dmri_crop_moco.nii.gz -bval bvals.txt -bvec bvecs.txt
+# Tips: the flag "-method restore" estimates the tensor with robust fit (RESTORE method [2])
+
 # Segment SC on motion-corrected mean dwi data (check results in the QC report)
-sct_propseg -i dmri_crop_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
+sct_deepseg_sc -i dmri_crop_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
 # Register template->dwi via t2s to account for GM segmentation
-# Tips: Here we use the PAM50 contrast t1, which is closer to the dwi contrast (although we are not using type=im in -param, so it will not make a difference here)
-# Note: the flag “-initwarpinv" provides a transformation dmri->template, in case you would like to bring all your DTI metrics in the PAM50 space (e.g. group averaging of FA maps)
-sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t1.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz -d dmri_crop_moco_dwi_mean.nii.gz -dseg dmri_crop_moco_dwi_mean_seg.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -qc ~/qc_singleSubj
+# Tips: Here we use the PAM50 contrast t1, which is closer to the dwi contrast (although we are not using type=im in
+#       -param, so it will not make a difference here)
+# Note: the flag “-initwarpinv" provides a transformation dmri->template, in case you would like to bring all your DTI
+#       metrics in the PAM50 space (e.g. group averaging of FA maps)
+sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
+                        -iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" \
+                        -d dmri_crop_moco_dwi_mean.nii.gz \
+                        -dseg dmri_crop_moco_dwi_mean_seg.nii.gz \
+                        -initwarp ../t2s/warp_template2t2s.nii.gz \
+                        -initwarpinv ../t2s/warp_t2s2template.nii.gz \
+                        -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
+                        -qc ~/qc_singleSubj
 # Rename warping fields for clarity
 mv warp_PAM50_t12dmri_crop_moco_dwi_mean.nii.gz warp_template2dmri.nii.gz
 mv warp_dmri_crop_moco_dwi_mean2PAM50_t1.nii.gz warp_dmri2template.nii.gz
+
 # Warp template
 sct_warp_template -d dmri_crop_moco_dwi_mean.nii.gz -w warp_template2dmri.nii.gz -qc ~/qc_singleSubj
 # Check results in the QC report
 
-# Compute DTI metrics using dipy [1]
-sct_dmri_compute_dti -i dmri_crop_moco.nii.gz -bval bvals.txt -bvec bvecs.txt
-# Tips: the flag "-method restore" estimates the tensor with robust fit (RESTORE method [2])
 # Compute FA within the white matter from individual level 2 to 5
-sct_extract_metric -i dti_FA.nii.gz -vert 2:5 -perlevel 1 -method map -l 51 -o fa_in_wm.csv
-# Go back to parent folder
-cd ..
+sct_extract_metric -i dti_FA.nii.gz -f label/atlas \
+                   -l 51 -method map \
+                   -vert 2:5 -vertfile label/template/PAM50_levels.nii.gz -perlevel 1 \
+                   -o fa_in_wm.csv
+
+
+
+# Functional MRI
+# ======================================================================================================================
+
+cd ../fmri
+# Preprocessing steps
+# Average all fMRI time series to make it a 3D volume (needed by the next command)
+sct_maths -i fmri.nii.gz -mean t -o fmri_mean.nii.gz
+# Bring t2 segmentation to fmri space (to create a mask)
+sct_register_multimodal -i ../t2/t2_seg.nii.gz -d fmri_mean.nii.gz -identity 1
+# Create mask at the center of the FOV
+sct_create_mask -i fmri.nii.gz -p centerline,t2_seg_reg.nii.gz -size 35mm -f cylinder
+
+# Motion correction (using mask)
+sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz
+
+# Register the template to the fMRI scan.
+# Note: here we don't rely on the segmentation because it is difficult to obtain one automatically. Instead, we rely on
+#       ANTs_SyN superpower to find a suitable transformation between the PAM50_t2s and the fMRI scan. We don't want to
+#       put too many iterations because this registration is very sensitive to the artifacts (drop out) in the image.
+#       Also, we want a 3D transformation (not 2D) because we need the through-z regularization.
+sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" \
+                        -d fmri_moco_mean.nii.gz \
+                        -dseg t2_seg_reg.nii.gz \
+                        -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 \
+                        -initwarp ../t2s/warp_template2t2s.nii.gz \
+                        -initwarpinv ../t2s/warp_t2s2template.nii.gz \
+                        -qc ~/qc_singleSubj
+# Check results in the QC report
+# Rename warping fields for clarity
+mv warp_PAM50_t2s2fmri_moco_mean.nii.gz warp_template2fmri.nii.gz
+mv warp_fmri_moco_mean2PAM50_t2s.nii.gz warp_fmri2template.nii.gz
+
+# Warp template with the spinal levels (-s 1)
+sct_warp_template -d fmri_moco_mean.nii.gz -w warp_template2fmri.nii.gz -s 1 -a 0 -qc ~/qc_singleSubj
+# Check results
+fsleyes --scene lightbox --hideCursor fmri_moco_mean.nii.gz -cm greyscale -dr 0 1000 \
+                                      label/spinal_levels/spinal_level_03 -cm red \
+                                      label/spinal_levels/spinal_level_04 -cm blue \
+                                      label/spinal_levels/spinal_level_05 -cm green \
+                                      label/spinal_levels/spinal_level_06 -cm yellow
 
 
 
@@ -292,28 +355,6 @@ sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
 
 # Align the spinal cord in the right-left direction using slice-wise translations.
 sct_flatten_sagittal -i t1.nii.gz -s t1_seg.nii.gz
+
+# Return to parent directory
 cd ..
-
-
-# Functional MRI
-# ======================================================================================================================
-cd fmri
-# Average all fMRI time series to make it a 3D volume (needed by the next command)
-sct_maths -i fmri.nii.gz -mean t -o fmri_mean.nii.gz
-# Bring t2 segmentation to fmri space (to create a mask)
-sct_register_multimodal -i ../t2/t2_seg.nii.gz -d fmri_mean.nii.gz -identity 1
-# Create mask at the center of the FOV
-sct_create_mask -i fmri.nii.gz -p centerline,t2_seg_reg.nii.gz -size 35mm -f cylinder
-# Motion correction (using mask)
-sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz
-# Register the template to the fMRI scan.
-# Note: here we don't rely on the segmentation because it is difficult to obtain one automatically. Instead, we rely on ANTs_SyN superpower to find a suitable transformation between the PAM50_t2s and the fMRI scan. We don't want to put too many iterations because this registration is very sensitive to the artifacts (drop out) in the image. Also, we want a 3D transformation (not 2D) because we need the through-z regularization.
-sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2s.nii.gz -d fmri_moco_mean.nii.gz -dseg t2_seg_reg.nii.gz -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -qc ~/qc_singleSubj
-# Check results in the QC report
-# Rename warping fields for clarity
-mv warp_PAM50_t2s2fmri_moco_mean.nii.gz warp_template2fmri.nii.gz
-mv warp_fmri_moco_mean2PAM50_t2s.nii.gz warp_fmri2template.nii.gz
-# Warp template with the spinal levels (-s 1)
-sct_warp_template -d fmri_moco_mean.nii.gz -w warp_template2fmri.nii.gz -s 1 -a 0 -qc ~/qc_singleSubj
-# Check results
-fsleyes --scene lightbox --hideCursor fmri_moco_mean.nii.gz -cm greyscale -dr 0 1000 label/spinal_levels/spinal_level_03 -cm red label/spinal_levels/spinal_level_04 -cm blue label/spinal_levels/spinal_level_05 -cm green label/spinal_levels/spinal_level_06 -cm yellow
