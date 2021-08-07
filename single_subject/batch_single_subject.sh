@@ -68,19 +68,19 @@ sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -qc ~/qc_singleSubj
 #       corresponds to the vertebral level), and t2_seg_labeled_discs, which only has a single point for each
 #       inter-vertebral disc level. The convention is: Value 3 —> C2-C3 disc, Value 4 —> C3-C4 disc, etc.
 
-# If automatic labeling did not work, you can initialize with manual identification of C2-C3 disc:
-sct_label_utils -i t2.nii.gz -create-viewer 3 -o label_c2c3.nii.gz -msg "Click at the posterior tip of C2/C3 inter-vertebral disc"
-sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -initlabel label_c2c3.nii.gz -qc ~/qc_singleSubj
+# OPTIONAL: If automatic labeling did not work, you can initialize with manual identification of C2-C3 disc:
+#sct_label_utils -i t2.nii.gz -create-viewer 3 -o label_c2c3.nii.gz \
+#                -msg "Click at the posterior tip of C2/C3 inter-vertebral disc"
+#sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -initlabel label_c2c3.nii.gz -qc ~/qc_singleSubj
 
 # Create labels at C3 and T2 mid-vertebral levels. These labels are needed for template registration.
 sct_label_utils -i t2_seg_labeled.nii.gz -vert-body 3,9 -o t2_labels_vert.nii.gz
 
-# You might want to completely bypass sct_label_vertebrae and do the labeling manually. In that case, we provide a
-# viewer to do so conveniently. In the example command below, we will create labels at the inter-vertebral discs C2-C3
-# (value=3), C3-C4 (value=4) and C4-C5 (value=5).
-
-# sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz \
-#                 -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
+# OPTIONAL: You might want to completely bypass sct_label_vertebrae and do the labeling manually. In that case, we
+# provide a viewer to do so conveniently. In the example command below, we will create labels at the inter-vertebral
+# discs C2-C3 (value=3), C3-C4 (value=4) and C4-C5 (value=5).
+#sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz \
+#                -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
 
 
 
