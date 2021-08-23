@@ -49,6 +49,7 @@ jobs:
     - name: "Checkout '${{ github.event.repository.name }}'"
       uses: actions/checkout@v2
       with:
+        ref: ${{ env.GITHUB_SHA }}
         path: ${{ github.event.repository.name }}
 
     - name: Run batch_single_subject.sh to generate intermediate files
@@ -67,6 +68,7 @@ jobs:
       id: create_release
       with:
         tag: ${{ github.event.inputs.release_title }}
+        commit: ${{ env.GITHUB_SHA }}
         token: ${{ secrets.GITHUB_TOKEN }}
       # Only create release if workflow is run manually. (This allows the workflow to double as a PR test.)
       if: github.event_name == 'workflow_dispatch'
