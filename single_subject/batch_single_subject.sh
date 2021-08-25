@@ -191,11 +191,10 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" \
                         -dseg t2s_wmseg.nii.gz \
                         -initwarp ../t2/warp_template2anat.nii.gz \
                         -initwarpinv ../t2/warp_anat2template.nii.gz \
+                        -owarp warp_template2t2s.nii.gz \
+                        -owarpinv warp_t2s2template.nii.gz \
                         -param step=1,type=seg,algo=rigid:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
                         -qc ~/qc_singleSubj
-# rename warping fields for clarity
-mv warp_PAM50_t2s2t2s.nii.gz warp_template2t2s.nii.gz
-mv warp_t2s2PAM50_t2s.nii.gz warp_t2s2template.nii.gz
 
 cd ../mt
 # Register template->mt via t2s to account for GM segmentation
@@ -206,10 +205,8 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2.nii.gz" \
                         -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
                         -m mask_mt1.nii.gz \
                         -initwarp ../t2s/warp_template2t2s.nii.gz \
+                        -owarp warp_template2mt.nii.gz \
                         -qc ~/qc_singleSubj
-# Rename warping field for clarity
-mv warp_PAM50_t22mt1.nii.gz warp_template2mt.nii.gz
-
 
 
 # Computing metrics for gray/white matter (including atlas-based tract analysis)
@@ -287,11 +284,10 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
                         -dseg dmri_crop_moco_dwi_mean_seg.nii.gz \
                         -initwarp ../t2s/warp_template2t2s.nii.gz \
                         -initwarpinv ../t2s/warp_t2s2template.nii.gz \
+                        -owarp warp_template2dmri.nii.gz \
+                        -owarpinv warp_dmri2template.nii.gz \
                         -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
                         -qc ~/qc_singleSubj
-# Rename warping fields for clarity
-mv warp_PAM50_t12dmri_crop_moco_dwi_mean.nii.gz warp_template2dmri.nii.gz
-mv warp_dmri_crop_moco_dwi_mean2PAM50_t1.nii.gz warp_dmri2template.nii.gz
 
 # Warp template
 sct_warp_template -d dmri_crop_moco_dwi_mean.nii.gz -w warp_template2dmri.nii.gz -qc ~/qc_singleSubj
@@ -331,11 +327,10 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" \
                         -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 \
                         -initwarp ../t2s/warp_template2t2s.nii.gz \
                         -initwarpinv ../t2s/warp_t2s2template.nii.gz \
+                        -owarp warp_template2fmri.nii.gz \
+                        -owarpinv warp_fmri2template.nii.gz \
                         -qc ~/qc_singleSubj
 # Check results in the QC report
-# Rename warping fields for clarity
-mv warp_PAM50_t2s2fmri_moco_mean.nii.gz warp_template2fmri.nii.gz
-mv warp_fmri_moco_mean2PAM50_t2s.nii.gz warp_fmri2template.nii.gz
 
 # Warp template with the spinal levels (-s 1)
 sct_warp_template -d fmri_moco_mean.nii.gz -w warp_template2fmri.nii.gz -s 1 -a 0 -qc ~/qc_singleSubj
