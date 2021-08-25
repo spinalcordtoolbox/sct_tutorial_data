@@ -61,7 +61,6 @@ jobs:
       run: |
         cd ${{ github.event.repository.name }}
         awk -F, '{ print $1,$2 }' tutorial-datasets.csv | xargs -l zip -ur
-      if: github.event_name == 'workflow_dispatch'
 
     - uses: ncipollo/release-action@v1
       name: Create release ('${{ github.event.inputs.release_title }}')
