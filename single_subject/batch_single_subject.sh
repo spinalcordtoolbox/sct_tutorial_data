@@ -49,7 +49,7 @@ cd ../t1
 sct_propseg -i t1.nii.gz -c t1 -qc ~/qc_singleSubj
 # Check QC report: Go to your browser and do "refresh". Notice that the segmentation is "leaking".
 # Try another algorithm based on deep-learning
-sct_deepseg_sc -i t1.nii.gz -c t1 -qc ~/qc_singleSubj -ofolder deepseg
+sct_deepseg_sc -i t1.nii.gz -c t1 -ofolder deepseg -qc ~/qc_singleSubj
 # Check QC report: Go to your browser and do "refresh". Notice that the leakage is fixed.
 # Optional: Check results in FSLeyes. In red: PropSeg, in green: DeepSeg. Tips: use the right arrow key to switch
 #           overlay on/off.
