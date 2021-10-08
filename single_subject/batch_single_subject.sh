@@ -263,7 +263,8 @@ sct_deepseg_sc -i dmri_mean.nii.gz -c dwi -qc ~/qc_singleSubj
 sct_create_mask -i dmri_mean.nii.gz -p centerline,dmri_mean_seg.nii.gz -f cylinder -size 35mm
 
 # Motion correction (moco)
-sct_dmri_moco -i dmri.nii.gz -m mask_dmri_mean.nii.gz -bvec bvecs.txt
+sct_dmri_moco -i dmri.nii.gz -m mask_dmri_mean.nii.gz -bvec bvecs.txt \
+              -qc ~/qc_singleSubj -qc-seg dmri_mean_seg.nii.gz
 
 # Compute DTI metrics using dipy [1]
 sct_dmri_compute_dti -i dmri_moco.nii.gz -bval bvals.txt -bvec bvecs.txt
@@ -312,7 +313,8 @@ sct_register_multimodal -i ../t2/t2_seg.nii.gz -d fmri_mean.nii.gz -identity 1
 sct_create_mask -i fmri.nii.gz -p centerline,t2_seg_reg.nii.gz -size 35mm -f cylinder
 
 # Motion correction (using mask)
-sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz
+sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz \
+              -qc ~/qc_singleSubj -qc-seg t2_seg_reg.nii.gz
 
 # Register the template to the fMRI scan.
 # Note: here we don't rely on the segmentation because it is difficult to obtain one automatically. Instead, we rely on
