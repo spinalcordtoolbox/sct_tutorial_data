@@ -14,6 +14,9 @@ data_mtr-computation,single_subject/data/mt/mt1.nii.gz
 data_mtr-computation,single_subject/data/mt/mt1_seg.nii.gz
 data_mtr-computation,single_subject/data/mt/mask_mt1.nii.gz
 data_gm-wm-segmentation,single_subject/data/t2s/t2s.nii.gz
+data_gm-wm-metric-computation,single_subject/data/t2s/t2s_gmseg.nii.gz
+data_gm-wm-metric-computation,single_subject/data/t2s/t2s_wmseg.nii.gz
+data_gm-wm-metric-computation,single_subject/data/t2s/t2s.nii.gz
 data_improving-registration-with-gm-seg,single_subject/data/t2s/t2s.nii.gz
 data_improving-registration-with-gm-seg,single_subject/data/t2s/t2s_wmseg.nii.gz
 data_improving-registration-with-gm-seg,single_subject/data/t2/warp_anat2template.nii.gz
@@ -21,12 +24,9 @@ data_improving-registration-with-gm-seg,single_subject/data/t2/warp_template2ana
 data_improving-registration-with-gm-seg,single_subject/data/mt/mt1.nii.gz
 data_improving-registration-with-gm-seg,single_subject/data/mt/mt1_seg.nii.gz
 data_improving-registration-with-gm-seg,single_subject/data/mt/mask_mt1.nii.gz
-data_gm-wm-metric-computation,single_subject/data/t2s/t2s_gmseg.nii.gz
-data_gm-wm-metric-computation,single_subject/data/t2s/t2s_wmseg.nii.gz
-data_gm-wm-metric-computation,single_subject/data/t2s/t2s.nii.gz
-data_gm-wm-metric-computation,single_subject/data/mt/warp_template2mt.nii.gz
-data_gm-wm-metric-computation,single_subject/data/mt/mt1.nii.gz
-data_gm-wm-metric-computation,single_subject/data/mt/mtr.nii.gz
+data_atlas-based-analysis,single_subject/data/mt/warp_template2mt.nii.gz
+data_atlas-based-analysis,single_subject/data/mt/mt1.nii.gz
+data_atlas-based-analysis,single_subject/data/mt/mtr.nii.gz
 data_processing-dmri-data,single_subject/data/dmri/dmri.nii.gz
 data_processing-dmri-data,single_subject/data/dmri/bvals.txt
 data_processing-dmri-data,single_subject/data/dmri/bvecs.txt

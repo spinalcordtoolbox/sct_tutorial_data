@@ -180,6 +180,25 @@ sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
 
 
 
+# Computing metrics for gray/white matter (segmented spinal cord only)
+# ======================================================================================================================
+
+# Compute cross-sectional area (CSA) of the gray and white matter for all slices in the volume.
+# Note: Here we use the flag -angle-corr 0, because we do not want to correct the computed CSA by the cosine of the
+# angle between the cord centerline and the S-I axis: we assume that slices were acquired orthogonally to the cord.
+sct_process_segmentation -i t2s_wmseg.nii.gz -o csa_wm.csv -angle-corr 0
+sct_process_segmentation -i t2s_gmseg.nii.gz -o csa_gm.csv -angle-corr 0
+
+# You can also binary masks to extract signal intensity from MRI data.
+# The example below will show how to use the GM and WM segmentations to quantify T2* signal intensity, as done in
+# [Martin et al. PLoS One 2018].
+# Quantify average WM and GM signal between slices 2 and 12.
+sct_extract_metric -i t2s.nii.gz -f t2s_wmseg.nii.gz -method bin -z 2:12 -o t2s_value.csv
+sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_value.csv -append 1
+# Note: the flag -append enables to append a new result at the end of an already-existing csv file.
+
+
+
 # Improving registration results using gray/white matter segmentations
 # ======================================================================================================================
 
@@ -209,27 +228,10 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2.nii.gz" \
                         -qc ~/qc_singleSubj
 
 
-# Computing metrics for gray/white matter (including atlas-based tract analysis)
+
+# Computing metrics for gray/white matter (Atlas-based tract analysis)
 # ======================================================================================================================
 
-# Metrics using WM/GM mask only (no atlas)
-cd ../t2s
-# Compute cross-sectional area (CSA) of the gray and white matter for all slices in the volume.
-# Note: Here we use the flag -angle-corr 0, because we do not want to correct the computed CSA by the cosine of the
-# angle between the cord centerline and the S-I axis: we assume that slices were acquired orthogonally to the cord.
-sct_process_segmentation -i t2s_wmseg.nii.gz -o csa_wm.csv -angle-corr 0
-sct_process_segmentation -i t2s_gmseg.nii.gz -o csa_gm.csv -angle-corr 0
-
-# You can also use a single binary mask to extract signal intensity from MRI data.
-# The example below will show how to use the GM and WM segmentations to quantify T2* signal intensity, as done in
-# [Martin et al. PLoS One 2018].
-# Quantify average WM and GM signal between slices 2 and 12.
-sct_extract_metric -i t2s.nii.gz -f t2s_wmseg.nii.gz -method bin -z 2:12 -o t2s_value.csv
-sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_value.csv -append 1
-# Note: the flag -append enables to append a new result at the end of an already-existing csv file.
-
-# Atlas-based tract analysis
-cd ../mt
 # In order to use the PAM50 atlas to extract/aggregate image data, the atlas must first be transformed to the MT space
 sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -a 1 -qc ~/qc_singleSubj
 # Check results
