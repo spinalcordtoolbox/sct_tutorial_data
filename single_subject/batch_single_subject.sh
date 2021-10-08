@@ -261,18 +261,16 @@ sct_maths -i dmri.nii.gz -mean t -o dmri_mean.nii.gz
 sct_deepseg_sc -i dmri_mean.nii.gz -c dwi -qc ~/qc_singleSubj
 # Create mask (for subsequent cropping)
 sct_create_mask -i dmri_mean.nii.gz -p centerline,dmri_mean_seg.nii.gz -f cylinder -size 35mm
-# Crop data for faster processing
-sct_crop_image -i dmri.nii.gz -m mask_dmri_mean.nii.gz -o dmri_crop.nii.gz
 
 # Motion correction (moco)
-sct_dmri_moco -i dmri_crop.nii.gz -bvec bvecs.txt
+sct_dmri_moco -i dmri.nii.gz -m mask_dmri_mean.nii.gz -bvec bvecs.txt
 
 # Compute DTI metrics using dipy [1]
-sct_dmri_compute_dti -i dmri_crop_moco.nii.gz -bval bvals.txt -bvec bvecs.txt
+sct_dmri_compute_dti -i dmri_moco.nii.gz -bval bvals.txt -bvec bvecs.txt
 # Tips: the flag "-method restore" estimates the tensor with robust fit (RESTORE method [2])
 
 # Segment SC on motion-corrected mean dwi data (check results in the QC report)
-sct_deepseg_sc -i dmri_crop_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
+sct_deepseg_sc -i dmri_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
 # Register template->dwi via t2s to account for GM segmentation
 # Tips: Here we use the PAM50 contrast t1, which is closer to the dwi contrast (although we are not using type=im in
 #       -param, so it will not make a difference here)
@@ -280,8 +278,8 @@ sct_deepseg_sc -i dmri_crop_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
 #       metrics in the PAM50 space (e.g. group averaging of FA maps)
 sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
                         -iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" \
-                        -d dmri_crop_moco_dwi_mean.nii.gz \
-                        -dseg dmri_crop_moco_dwi_mean_seg.nii.gz \
+                        -d dmri_moco_dwi_mean.nii.gz \
+                        -dseg dmri_moco_dwi_mean_seg.nii.gz \
                         -initwarp ../t2s/warp_template2t2s.nii.gz \
                         -initwarpinv ../t2s/warp_t2s2template.nii.gz \
                         -owarp warp_template2dmri.nii.gz \
@@ -290,7 +288,7 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
                         -qc ~/qc_singleSubj
 
 # Warp template
-sct_warp_template -d dmri_crop_moco_dwi_mean.nii.gz -w warp_template2dmri.nii.gz -qc ~/qc_singleSubj
+sct_warp_template -d dmri_moco_dwi_mean.nii.gz -w warp_template2dmri.nii.gz -qc ~/qc_singleSubj
 # Check results in the QC report
 
 # Compute FA within the white matter from individual level 2 to 5
