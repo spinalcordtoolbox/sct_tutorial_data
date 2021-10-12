@@ -180,7 +180,7 @@ sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
 
 
 
-# Computing metrics for gray/white matter (segmented spinal cord only)
+# Computing metrics for gray/white matter (using binary segmentation masks only)
 # ======================================================================================================================
 
 # Compute cross-sectional area (CSA) of the gray and white matter for all slices in the volume.
@@ -229,7 +229,7 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2.nii.gz" \
 
 
 
-# Computing metrics for gray/white matter (Atlas-based tract analysis)
+# Extracting metrics (MTR) in gray/white matter (Atlas-based tract analysis)
 # ======================================================================================================================
 
 # In order to use the PAM50 atlas to extract/aggregate image data, the atlas must first be transformed to the MT space
