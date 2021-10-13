@@ -11,8 +11,6 @@ data_coregistration,single_subject/data/t2/warp_template2anat.nii.gz
 data_coregistration,single_subject/data/mt/mt1.nii.gz
 data_mtr-computation,single_subject/data/mt/mt0.nii.gz
 data_mtr-computation,single_subject/data/mt/mt1.nii.gz
-data_mtr-computation,single_subject/data/mt/mt1_seg.nii.gz
-data_mtr-computation,single_subject/data/mt/mask_mt1.nii.gz
 data_gm-wm-segmentation,single_subject/data/t2s/t2s.nii.gz
 data_gm-wm-metric-computation,single_subject/data/t2s/t2s_gmseg.nii.gz
 data_gm-wm-metric-computation,single_subject/data/t2s/t2s_wmseg.nii.gz
