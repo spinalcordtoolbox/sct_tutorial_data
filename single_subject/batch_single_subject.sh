@@ -166,6 +166,7 @@ fsleyes mt1.nii.gz -cm greyscale -a 100.0 \
 # ======================================================================================================================
 
 # Register mt0->mt1 using z-regularized slicewise translations (algo=slicereg)
+# Note: Segmentation and mask can be re-used from "MT registration" section
 sct_register_multimodal -i mt0.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz \
                         -param step=1,type=im,algo=slicereg,metric=CC -x spline -qc ~/qc_singleSubj
 # Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
