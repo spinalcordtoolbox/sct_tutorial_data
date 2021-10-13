@@ -85,7 +85,7 @@ sct_label_utils -i t2_seg_labeled.nii.gz -vert-body 3,9 -o t2_labels_vert.nii.gz
 
 
 
-# Registratering T2 data to the PAM50 template
+# Registering T2 data to the PAM50 template
 # ======================================================================================================================
 
 # Register t2->template.
@@ -132,15 +132,25 @@ sct_create_mask -i mt1.nii.gz -p centerline,mt1_seg.nii.gz -size 35mm -f cylinde
 
 # Register template->mt1. The flag -initwarp ../t2/warp_template2anat.nii.gz initializes the registration using the
 # template->t2 transformation which was previously estimated
-sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz \
-                        -d mt1.nii.gz -dseg mt1_seg.nii.gz \
-                        -m mask_mt1.nii.gz -initwarp ../t2/warp_template2anat.nii.gz \
+sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz \
+                        -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz \
+                        -d mt1.nii.gz \
+                        -dseg mt1_seg.nii.gz \
+                        -m mask_mt1.nii.gz \
+                        -initwarp ../t2/warp_template2anat.nii.gz \
                         -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3  \
-                        -owarp warp_template2mt.nii.gz -qc ~/qc_singleSubj
+                        -owarp warp_template2mt.nii.gz \
+                        -qc ~/qc_singleSubj
 # Tips: Here we only use the segmentations (type=seg) to minimize the sensitivity of the registration procedure to
 #       image artifacts.
 # Tips: Step 1: algo=centermass to align source and destination segmentations, then Step 2: algo=bpslinesyn to adapt the
 #       shape of the cord to the mt modality (in case there are distortions between the t2 and the mt scan).
+
+# OPTIONAL: If you don't have a corresponding anatomical image to register first (in this case, the T2 warping field we're using for `-initwarp`), you can register the template directly to a metric image, without going via an anatomical image. For that, you just need to create one or two labels in the metric space. For example, if you know that your FOV is centered at C3/C4 disc, then you can create a label automatically with:
+# sct_label_utils -i mt1_seg.nii.gz -create-seg -1,4 -o label_c3c4.nii.gz
+# Then, you can register to the template.
+# Note: In case the metric image has axial resolution with thick slices, we recommend to do the registration in the subject space (instead of the template space), without cord straightening.
+# sct_register_to_template -i mt1.nii.gz -s mt1_seg.nii.gz -ldisc label_c3c4.nii.gz -ref subject -param step=1,type=seg,algo=centermassrot:step=2,type=seg,algo=bsplinesyn,slicewise=1
 
 # Warp template
 sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -a 1 -qc ~/qc_singleSubj
@@ -166,7 +176,7 @@ sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 
 
 
-# Gray/white matter segmentation
+# Gray/white matter: Segmentation
 # ======================================================================================================================
 
 # Go to T2*-weighted data, which has good GM/WM contrast and high in-plane resolution
@@ -180,16 +190,16 @@ sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
 
 
 
-# Computing metrics for gray/white matter (using binary segmentation masks only)
+# Gray/white matter: Computing metrics using binary segmentation masks
 # ======================================================================================================================
 
 # Compute cross-sectional area (CSA) of the gray and white matter for all slices in the volume.
 # Note: Here we use the flag -angle-corr 0, because we do not want to correct the computed CSA by the cosine of the
 # angle between the cord centerline and the S-I axis: we assume that slices were acquired orthogonally to the cord.
-sct_process_segmentation -i t2s_wmseg.nii.gz -o csa_wm.csv -angle-corr 0
-sct_process_segmentation -i t2s_gmseg.nii.gz -o csa_gm.csv -angle-corr 0
+sct_process_segmentation -i t2s_wmseg.nii.gz -o csa_wm.csv -perslice 1 -angle-corr 0
+sct_process_segmentation -i t2s_gmseg.nii.gz -o csa_gm.csv -perslice 1 -angle-corr 0
 
-# You can also binary masks to extract signal intensity from MRI data.
+# You can also use the binary masks to extract signal intensity from MRI data.
 # The example below will show how to use the GM and WM segmentations to quantify T2* signal intensity, as done in
 # [Martin et al. PLoS One 2018].
 # Quantify average WM and GM signal between slices 2 and 12.
@@ -199,7 +209,7 @@ sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_
 
 
 
-# Improving registration results using gray/white matter segmentations
+# Gray/white matter: Improving registration results using binary segmentation masks
 # ======================================================================================================================
 
 # Register template->t2s (using warping field generated from template<->t2 registration)
@@ -229,7 +239,7 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2.nii.gz" \
 
 
 
-# Extracting metrics (MTR) in gray/white matter (Atlas-based tract analysis)
+# Atlas-based analysis (Extracting metrics (MTR) in gray/white matter tracts)
 # ======================================================================================================================
 
 # In order to use the PAM50 atlas to extract/aggregate image data, the atlas must first be transformed to the MT space
@@ -248,7 +258,9 @@ sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 51 -o mtr_in_wm.c
 sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 4,5 -z 5:15 -o mtr_in_cst.csv
 # You can specify the vertebral levels to extract MTR from. For example, to quantify MTR between C2 and C4 levels in the
 # dorsal column (combined label: #53) using weighted average:
-sct_extract_metric -i mtr.nii.gz -f label/atlas -method wa -l 53 -vert 2:4 -o mtr_in_dc.csv
+sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 53 \
+                   -vert 2:4 -vertfile label/template/PAM50_levels.nii.gz \
+                   -o mtr_in_dc.csv
 
 
 # Diffusion-weighted MRI
@@ -268,12 +280,9 @@ sct_create_mask -i dmri_mean.nii.gz -p centerline,dmri_mean_seg.nii.gz -f cylind
 sct_dmri_moco -i dmri.nii.gz -m mask_dmri_mean.nii.gz -bvec bvecs.txt \
               -qc ~/qc_singleSubj -qc-seg dmri_mean_seg.nii.gz
 
-# Compute DTI metrics using dipy [1]
-sct_dmri_compute_dti -i dmri_moco.nii.gz -bval bvals.txt -bvec bvecs.txt
-# Tips: the flag "-method restore" estimates the tensor with robust fit (RESTORE method [2])
-
 # Segment SC on motion-corrected mean dwi data (check results in the QC report)
 sct_deepseg_sc -i dmri_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
+
 # Register template->dwi via t2s to account for GM segmentation
 # Tips: Here we use the PAM50 contrast t1, which is closer to the dwi contrast (although we are not using type=im in
 #       -param, so it will not make a difference here)
@@ -289,10 +298,13 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
                         -owarpinv warp_dmri2template.nii.gz \
                         -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
                         -qc ~/qc_singleSubj
-
-# Warp template
+# Warp template (so 'label/atlas' can be used to extract metrics)
 sct_warp_template -d dmri_moco_dwi_mean.nii.gz -w warp_template2dmri.nii.gz -qc ~/qc_singleSubj
 # Check results in the QC report
+
+# Compute DTI metrics using dipy [1]
+sct_dmri_compute_dti -i dmri_moco.nii.gz -bval bvals.txt -bvec bvecs.txt
+# Tips: the flag "-method restore" estimates the tensor with robust fit (RESTORE method [2])
 
 # Compute FA within the white matter from individual level 2 to 5
 sct_extract_metric -i dti_FA.nii.gz -f label/atlas \
@@ -355,6 +367,7 @@ sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
 
 # Align the spinal cord in the right-left direction using slice-wise translations.
 sct_flatten_sagittal -i t1.nii.gz -s t1_seg.nii.gz
+# Note: Use for visualization purposes only
 
 # Return to parent directory
 cd ..
