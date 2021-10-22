@@ -293,6 +293,7 @@ sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
                         -iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" \
                         -d dmri_moco_dwi_mean.nii.gz \
                         -dseg dmri_moco_dwi_mean_seg.nii.gz \
+                        -m mask_dmri_mean.nii.gz \
                         -initwarp ../t2s/warp_template2t2s.nii.gz \
                         -initwarpinv ../t2s/warp_t2s2template.nii.gz \
                         -owarp warp_template2dmri.nii.gz \
@@ -339,6 +340,7 @@ sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz \
 sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" \
                         -d fmri_moco_mean.nii.gz \
                         -dseg t2_seg_reg.nii.gz \
+                        -m mask_fmri.nii.gz \
                         -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 \
                         -initwarp ../t2s/warp_template2t2s.nii.gz \
                         -initwarpinv ../t2s/warp_t2s2template.nii.gz \
