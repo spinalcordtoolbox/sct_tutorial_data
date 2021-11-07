@@ -111,6 +111,13 @@ sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile ./label/template/P
 # Aggregate CSA value per slices
 sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -perslice 1 -o csa_perslice.csv
 
+# A drawback of vertebral level-based CSA is that it doesn’t consider neck flexion and extension.
+# To overcome this limitation, the CSA can instead be computed using the distance to a reference point.
+# Here, we use the Pontomedullary Junction (PMJ), since the distance from the PMJ along the centerline
+# of the spinal cord will vary depending on the position of the neck.
+sct_detect_pmj -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
+# Check the QC to make sure PMJ was properly detected, then compute CSA using the distance from the PMJ:
+sct_process_segmentation -i t2_seg.nii.gz -pmj t2_pmj.nii.gz -pmj-distance 64 -pmj-extent 30 -o csa_pmj.csv -qc ~/qc_singleSubj -qc-image t2.nii.gz
 
 
 # Registering additional MT data to the PAM50 template
