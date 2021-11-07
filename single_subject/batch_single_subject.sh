@@ -74,6 +74,8 @@ sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -qc ~/qc_singleSubj
 
 # Create labels at C3 and T2 mid-vertebral levels. These labels are needed for template registration.
 sct_label_utils -i t2_seg_labeled.nii.gz -vert-body 3,9 -o t2_labels_vert.nii.gz
+# Generate a QC report to visualize the two selected labels on the anatomical image
+sct_qc -i t2.nii.gz -s t2_labels_vert.nii.gz -p sct_label_utils -qc ~/qc_singleSubj
 
 # OPTIONAL: You might want to completely bypass sct_label_vertebrae and do the labeling manually. In that case, we
 # provide a viewer to do so conveniently. In the example command below, we will create labels at the inter-vertebral
