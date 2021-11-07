@@ -142,7 +142,7 @@ sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -iseg $S
 # Tips: Step 1: algo=centermass to align source and destination segmentations, then Step 2: algo=bpslinesyn to adapt the
 #       shape of the cord to the mt modality (in case there are distortions between the t2 and the mt scan).
 
-# OPTIONAL: If you don't have a corresponding anatomical image to register first (in this case, the T2 warping field we're using for `-initwarp`), you can register the template directly to a metric image, without going via an anatomical image. For that, you just need to create one or two labels in the metric space. For example, if you know that your FOV is centered at C3/C4 disc, then you can create a label automatically with:
+# OPTIONAL: Registration with -initwarp requires pre-registration, but in some cases you won't have an anatomical image to do a pre-registration. So, as an alternative, you can register the template directly to a metric image. For that, you just need to create one or two labels in the metric space. For example, if you know that your FOV is centered at C3/C4 disc, then you can create a label automatically with:
 # sct_label_utils -i mt1_seg.nii.gz -create-seg -1,4 -o label_c3c4.nii.gz
 # Then, you can register to the template.
 # Note: In case the metric image has axial resolution with thick slices, we recommend to do the registration in the subject space (instead of the template space), without cord straightening.
