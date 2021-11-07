@@ -96,7 +96,7 @@ sct_warp_template -d t2.nii.gz -w warp_template2anat.nii.gz -a 0 -qc ~/qc_single
 # Note: A folder label/template/ is created, which contains template objects in the space of the subject. The file
 #       info_label.txt lists all template files.
 
-# Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
+# Check results using Fsleyes.
 fsleyes t2.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
 
 
@@ -141,7 +141,7 @@ sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -iseg $S
 
 # Warp template
 sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -a 1 -qc ~/qc_singleSubj
-# Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
+# Check results using Fsleyes.
 fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
 
 
@@ -152,7 +152,7 @@ fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm gre
 # Register mt0->mt1 using z-regularized slicewise translations (algo=slicereg)
 # Note: Segmentation and mask can be re-used from "MT registration" section
 sct_register_multimodal -i mt0.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz -param step=1,type=im,algo=slicereg,metric=CC -x spline -qc ~/qc_singleSubj
-# Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
+# Check results using Fsleyes.
 fsleyes mt1.nii.gz mt0_reg.nii.gz &
 # Compute MTR
 sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
