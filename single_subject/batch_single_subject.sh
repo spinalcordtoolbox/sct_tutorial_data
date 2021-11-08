@@ -69,18 +69,18 @@ sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -qc ~/qc_singleSubj
 #       inter-vertebral disc level. The convention is: Value 3 —> C2-C3 disc, Value 4 —> C3-C4 disc, etc.
 
 # OPTIONAL: If automatic labeling did not work, you can initialize with manual identification of C2-C3 disc:
-#sct_label_utils -i t2.nii.gz -create-viewer 3 -o label_c2c3.nii.gz \
-#                -msg "Click at the posterior tip of C2/C3 inter-vertebral disc"
+#sct_label_utils -i t2.nii.gz -create-viewer 3 -o label_c2c3.nii.gz -msg "Click at the posterior tip of C2/C3 inter-vertebral disc"
 #sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -initlabel label_c2c3.nii.gz -qc ~/qc_singleSubj
 
 # Create labels at C3 and T2 mid-vertebral levels. These labels are needed for template registration.
 sct_label_utils -i t2_seg_labeled.nii.gz -vert-body 3,9 -o t2_labels_vert.nii.gz
+# Generate a QC report to visualize the two selected labels on the anatomical image
+sct_qc -i t2.nii.gz -s t2_labels_vert.nii.gz -p sct_label_utils -qc ~/qc_singleSubj
 
 # OPTIONAL: You might want to completely bypass sct_label_vertebrae and do the labeling manually. In that case, we
 # provide a viewer to do so conveniently. In the example command below, we will create labels at the inter-vertebral
 # discs C2-C3 (value=3), C3-C4 (value=4) and C4-C5 (value=5).
-#sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz \
-#                -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
+#sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
 
 
 
@@ -98,11 +98,8 @@ sct_warp_template -d t2.nii.gz -w warp_template2anat.nii.gz -a 0 -qc ~/qc_single
 # Note: A folder label/template/ is created, which contains template objects in the space of the subject. The file
 #       info_label.txt lists all template files.
 
-# Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
-fsleyes t2.nii.gz -cm greyscale -a 100.0 \
-        label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 \
-        label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 \
-        label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
+# Check results using Fsleyes.
+fsleyes t2.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
 
 
 
@@ -116,6 +113,13 @@ sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile ./label/template/P
 # Aggregate CSA value per slices
 sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -perslice 1 -o csa_perslice.csv
 
+# A drawback of vertebral level-based CSA is that it doesn’t consider neck flexion and extension.
+# To overcome this limitation, the CSA can instead be computed using the distance to a reference point.
+# Here, we use the Pontomedullary Junction (PMJ), since the distance from the PMJ along the centerline
+# of the spinal cord will vary depending on the position of the neck.
+sct_detect_pmj -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
+# Check the QC to make sure PMJ was properly detected, then compute CSA using the distance from the PMJ:
+sct_process_segmentation -i t2_seg.nii.gz -pmj t2_pmj.nii.gz -pmj-distance 64 -pmj-extent 30 -o csa_pmj.csv -qc ~/qc_singleSubj -qc-image t2.nii.gz
 
 
 # Registering additional MT data to the PAM50 template
@@ -132,21 +136,13 @@ sct_create_mask -i mt1.nii.gz -p centerline,mt1_seg.nii.gz -size 35mm -f cylinde
 
 # Register template->mt1. The flag -initwarp ../t2/warp_template2anat.nii.gz initializes the registration using the
 # template->t2 transformation which was previously estimated
-sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz \
-                        -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz \
-                        -d mt1.nii.gz \
-                        -dseg mt1_seg.nii.gz \
-                        -m mask_mt1.nii.gz \
-                        -initwarp ../t2/warp_template2anat.nii.gz \
-                        -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3  \
-                        -owarp warp_template2mt.nii.gz \
-                        -qc ~/qc_singleSubj
+sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -owarp warp_template2mt.nii.gz -qc ~/qc_singleSubj
 # Tips: Here we only use the segmentations (type=seg) to minimize the sensitivity of the registration procedure to
 #       image artifacts.
 # Tips: Step 1: algo=centermass to align source and destination segmentations, then Step 2: algo=bpslinesyn to adapt the
 #       shape of the cord to the mt modality (in case there are distortions between the t2 and the mt scan).
 
-# OPTIONAL: If you don't have a corresponding anatomical image to register first (in this case, the T2 warping field we're using for `-initwarp`), you can register the template directly to a metric image, without going via an anatomical image. For that, you just need to create one or two labels in the metric space. For example, if you know that your FOV is centered at C3/C4 disc, then you can create a label automatically with:
+# OPTIONAL: Registration with -initwarp requires pre-registration, but in some cases you won't have an anatomical image to do a pre-registration. So, as an alternative, you can register the template directly to a metric image. For that, you just need to create one or two labels in the metric space. For example, if you know that your FOV is centered at C3/C4 disc, then you can create a label automatically with:
 # sct_label_utils -i mt1_seg.nii.gz -create-seg -1,4 -o label_c3c4.nii.gz
 # Then, you can register to the template.
 # Note: In case the metric image has axial resolution with thick slices, we recommend to do the registration in the subject space (instead of the template space), without cord straightening.
@@ -154,11 +150,8 @@ sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz \
 
 # Warp template
 sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -a 1 -qc ~/qc_singleSubj
-# Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
-fsleyes mt1.nii.gz -cm greyscale -a 100.0 \
-        label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 \
-        label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 \
-        label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
+# Check results using Fsleyes.
+fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
 
 
 
@@ -167,9 +160,8 @@ fsleyes mt1.nii.gz -cm greyscale -a 100.0 \
 
 # Register mt0->mt1 using z-regularized slicewise translations (algo=slicereg)
 # Note: Segmentation and mask can be re-used from "MT registration" section
-sct_register_multimodal -i mt0.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz \
-                        -param step=1,type=im,algo=slicereg,metric=CC -x spline -qc ~/qc_singleSubj
-# Check results using Fsleyes. Tips: use the right arrow key to switch overlay on/off.
+sct_register_multimodal -i mt0.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz -param step=1,type=im,algo=slicereg,metric=CC -x spline -qc ~/qc_singleSubj
+# Check results using Fsleyes.
 fsleyes mt1.nii.gz mt0_reg.nii.gz &
 # Compute MTR
 sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
@@ -215,41 +207,20 @@ sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_
 
 # Register template->t2s (using warping field generated from template<->t2 registration)
 # Tips: Here we use the WM seg for the iseg/dseg fields in order to account for both the cord and the GM shape.
-sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" \
-                        -iseg "${SCT_DIR}/data/PAM50/template/PAM50_wm.nii.gz" \
-                        -d t2s.nii.gz \
-                        -dseg t2s_wmseg.nii.gz \
-                        -initwarp ../t2/warp_template2anat.nii.gz \
-                        -initwarpinv ../t2/warp_anat2template.nii.gz \
-                        -owarp warp_template2t2s.nii.gz \
-                        -owarpinv warp_t2s2template.nii.gz \
-                        -param step=1,type=seg,algo=rigid:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
-                        -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" -iseg "${SCT_DIR}/data/PAM50/template/PAM50_wm.nii.gz" -d t2s.nii.gz -dseg t2s_wmseg.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2t2s.nii.gz -owarpinv warp_t2s2template.nii.gz -param step=1,type=seg,algo=rigid:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -qc ~/qc_singleSubj
+# Warp template
+sct_warp_template -d t2s.nii.gz -w warp_template2t2s.nii.gz -qc ~/qc_singleSubj
 
 cd ../mt
 # Register template->mt via t2s to account for GM segmentation
-sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2.nii.gz" \
-                        -iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" \
-                        -d mt1.nii.gz \
-                        -dseg mt1_seg.nii.gz \
-                        -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
-                        -m mask_mt1.nii.gz \
-                        -initwarp ../t2s/warp_template2t2s.nii.gz \
-                        -owarp warp_template2mt.nii.gz \
-                        -qc ~/qc_singleSubj
-
-
+sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2.nii.gz" -iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" -d mt1.nii.gz -dseg mt1_seg.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -m mask_mt1.nii.gz -initwarp ../t2s/warp_template2t2s.nii.gz -owarp warp_template2mt.nii.gz -qc ~/qc_singleSubj
+# Warp template
+sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -qc ~/qc_singleSubj
+# Check results
+fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 100.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 100.0 &
 
 # Atlas-based analysis (Extracting metrics (MTR) in gray/white matter tracts)
 # ======================================================================================================================
-
-# In order to use the PAM50 atlas to extract/aggregate image data, the atlas must first be transformed to the MT space
-sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -a 1 -qc ~/qc_singleSubj
-# Check results
-fsleyes mt1.nii.gz -cm greyscale -a 100.0 \
-        label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 \
-        label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 100.0 \
-        label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 100.0 &
 
 # Extract MTR for each slice within the white matter (combined label: #51)
 # Tips: To list all available labels, type: "sct_extract_metric"
@@ -259,9 +230,7 @@ sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 51 -o mtr_in_wm.c
 sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 4,5 -z 5:15 -o mtr_in_cst.csv
 # You can specify the vertebral levels to extract MTR from. For example, to quantify MTR between C2 and C4 levels in the
 # dorsal column (combined label: #53) using weighted average:
-sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 53 \
-                   -vert 2:4 -vertfile label/template/PAM50_levels.nii.gz \
-                   -o mtr_in_dc.csv
+sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 53 -vert 2:4 -vertfile label/template/PAM50_levels.nii.gz -o mtr_in_dc.csv
 
 
 # Diffusion-weighted MRI
@@ -278,8 +247,7 @@ sct_deepseg_sc -i dmri_mean.nii.gz -c dwi -qc ~/qc_singleSubj
 sct_create_mask -i dmri_mean.nii.gz -p centerline,dmri_mean_seg.nii.gz -f cylinder -size 35mm
 
 # Motion correction (moco)
-sct_dmri_moco -i dmri.nii.gz -m mask_dmri_mean.nii.gz -bvec bvecs.txt \
-              -qc ~/qc_singleSubj -qc-seg dmri_mean_seg.nii.gz
+sct_dmri_moco -i dmri.nii.gz -m mask_dmri_mean.nii.gz -bvec bvecs.txt -qc ~/qc_singleSubj -qc-seg dmri_mean_seg.nii.gz
 
 # Segment SC on motion-corrected mean dwi data (check results in the QC report)
 sct_deepseg_sc -i dmri_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
@@ -289,16 +257,7 @@ sct_deepseg_sc -i dmri_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
 #       -param, so it will not make a difference here)
 # Note: the flag “-initwarpinv" provides a transformation dmri->template, in case you would like to bring all your DTI
 #       metrics in the PAM50 space (e.g. group averaging of FA maps)
-sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" \
-                        -iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" \
-                        -d dmri_moco_dwi_mean.nii.gz \
-                        -dseg dmri_moco_dwi_mean_seg.nii.gz \
-                        -initwarp ../t2s/warp_template2t2s.nii.gz \
-                        -initwarpinv ../t2s/warp_t2s2template.nii.gz \
-                        -owarp warp_template2dmri.nii.gz \
-                        -owarpinv warp_dmri2template.nii.gz \
-                        -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 \
-                        -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" -iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" -d dmri_moco_dwi_mean.nii.gz -dseg dmri_moco_dwi_mean_seg.nii.gz -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -owarp warp_template2dmri.nii.gz -owarpinv warp_dmri2template.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -qc ~/qc_singleSubj
 # Warp template (so 'label/atlas' can be used to extract metrics)
 sct_warp_template -d dmri_moco_dwi_mean.nii.gz -w warp_template2dmri.nii.gz -qc ~/qc_singleSubj
 # Check results in the QC report
@@ -308,10 +267,7 @@ sct_dmri_compute_dti -i dmri_moco.nii.gz -bval bvals.txt -bvec bvecs.txt
 # Tips: the flag "-method restore" estimates the tensor with robust fit (RESTORE method [2])
 
 # Compute FA within the white matter from individual level 2 to 5
-sct_extract_metric -i dti_FA.nii.gz -f label/atlas \
-                   -l 51 -method map \
-                   -vert 2:5 -vertfile label/template/PAM50_levels.nii.gz -perlevel 1 \
-                   -o fa_in_wm.csv
+sct_extract_metric -i dti_FA.nii.gz -f label/atlas -l 51 -method map -vert 2:5 -vertfile label/template/PAM50_levels.nii.gz -perlevel 1 -o fa_in_wm.csv
 
 
 
@@ -328,33 +284,20 @@ sct_register_multimodal -i ../t2/t2_seg.nii.gz -d fmri_mean.nii.gz -identity 1
 sct_create_mask -i fmri.nii.gz -p centerline,t2_seg_reg.nii.gz -size 35mm -f cylinder
 
 # Motion correction (using mask)
-sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz \
-              -qc ~/qc_singleSubj -qc-seg t2_seg_reg.nii.gz
+sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz -qc ~/qc_singleSubj -qc-seg t2_seg_reg.nii.gz
 
 # Register the template to the fMRI scan.
 # Note: here we don't rely on the segmentation because it is difficult to obtain one automatically. Instead, we rely on
 #       ANTs_SyN superpower to find a suitable transformation between the PAM50_t2s and the fMRI scan. We don't want to
 #       put too many iterations because this registration is very sensitive to the artifacts (drop out) in the image.
 #       Also, we want a 3D transformation (not 2D) because we need the through-z regularization.
-sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" \
-                        -d fmri_moco_mean.nii.gz \
-                        -dseg t2_seg_reg.nii.gz \
-                        -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 \
-                        -initwarp ../t2s/warp_template2t2s.nii.gz \
-                        -initwarpinv ../t2s/warp_t2s2template.nii.gz \
-                        -owarp warp_template2fmri.nii.gz \
-                        -owarpinv warp_fmri2template.nii.gz \
-                        -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" -d fmri_moco_mean.nii.gz -dseg t2_seg_reg.nii.gz -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -owarp warp_template2fmri.nii.gz -owarpinv warp_fmri2template.nii.gz -qc ~/qc_singleSubj
 # Check results in the QC report
 
 # Warp template with the spinal levels (-s 1)
 sct_warp_template -d fmri_moco_mean.nii.gz -w warp_template2fmri.nii.gz -s 1 -a 0 -qc ~/qc_singleSubj
 # Check results
-fsleyes --scene lightbox --hideCursor fmri_moco_mean.nii.gz -cm greyscale -dr 0 1000 \
-                                      label/spinal_levels/spinal_level_03 -cm red \
-                                      label/spinal_levels/spinal_level_04 -cm blue \
-                                      label/spinal_levels/spinal_level_05 -cm green \
-                                      label/spinal_levels/spinal_level_06 -cm yellow
+fsleyes --scene lightbox --hideCursor fmri_moco_mean.nii.gz -cm greyscale -dr 0 1000 label/spinal_levels/spinal_level_03 -cm red label/spinal_levels/spinal_level_04 -cm blue label/spinal_levels/spinal_level_05 -cm green label/spinal_levels/spinal_level_06 -cm yellow &
 
 
 
