@@ -248,6 +248,7 @@ sct_create_mask -i dmri_mean.nii.gz -p centerline,dmri_mean_seg.nii.gz -f cylind
 
 # Motion correction (moco)
 sct_dmri_moco -i dmri.nii.gz -m mask_dmri_mean.nii.gz -bvec bvecs.txt -qc ~/qc_singleSubj -qc-seg dmri_mean_seg.nii.gz
+# Check results in the QC report
 
 # Segment SC on motion-corrected mean dwi data (check results in the QC report)
 sct_deepseg_sc -i dmri_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
