@@ -226,9 +226,7 @@ def check_software_installed(list_software=['sct', 'fsleyes']):
     logging.info("Checking if required software are installed...")
     for software in list_software:
         try:
-            print(software_cmd[software])
             output = subprocess.check_output(software_cmd[software], shell=True)
-            print('bla')
             logging.info("'{}' (version: {}) is installed.".format(software, output.decode('utf-8').strip('\n')))
         except:
             logging.error("'{}' is not installed. Please install it before using this program.".format(software))
