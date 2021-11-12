@@ -28,6 +28,8 @@ import yaml
 # TODO: make it an input argument (with default value)
 FOLDER_DERIVATIVES = os.path.join('derivatives', 'labels')
 
+logging.basicConfig(stream=sys.stdout, level='INFO', format="%(levelname)s %(message)s")
+
 
 def get_parser():
     """
