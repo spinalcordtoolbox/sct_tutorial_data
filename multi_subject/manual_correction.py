@@ -2,10 +2,16 @@
 #
 # Script to perform manual correction of segmentations and vertebral labeling.
 #
+# First, make sure that FSLeyes is installed and can be called without having 
+# to activate the FSLeyes conda environment:
+#   sudo ln -s $(command -v fsleyes) /usr/local/bin/fsleyes
+# Then, activate SCT's Python environment:
+#   source ${SCT_DIR}/python/etc/profile.d/conda.sh
+#   conda activate venv_sct
+# 
 # For usage, type: python manual_correction.py -h
 #
-# Authors: Jan Valosek, Julien Cohen-Adad
-# Adapted by Sandrine Bédard for cord CSA project UK Biobank
+# Authors: Jan Valosek, Julien Cohen-Adad, Sandrine Bédard
 
 import argparse
 import glob
@@ -21,7 +27,6 @@ import yaml
 # Folder where to output manual labels, at the root of a BIDS dataset.
 # TODO: make it an input argument (with default value)
 FOLDER_DERIVATIVES = os.path.join('derivatives', 'labels')
-
 
 
 def get_parser():
