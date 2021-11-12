@@ -11,6 +11,14 @@
 #
 # Author: Julien Cohen-Adad
 
+# The following global variables are retrieved from the caller sct_run_batch
+# but could be overwritten by uncommenting the lines below:
+# PATH_DATA_PROCESSED="~/data_processed"
+# PATH_RESULTS="~/results"
+# PATH_LOG="~/log"
+# PATH_QC="~/qc"
+
+
 # BASH SETTINGS
 # ======================================================================================================================
 
@@ -22,6 +30,7 @@ set -e
 
 # Exit if user presses CTRL+C (Linux) or CMD+C (OSX)
 trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
+
 
 # CONVENIENCE FUNCTIONS
 # ======================================================================================================================
@@ -76,22 +85,24 @@ segment_if_does_not_exist() {
   fi
 }
 
+
 # SCRIPT STARTS HERE
 # ======================================================================================================================
-
-# The following global variables are retrieved from config.yml but could be overwritten by uncommenting:
-# PATH_QC="~/qc"
 
 # Retrieve input params
 SUBJECT=$1
 
-# Go to results folder, where most of the outputs will be located
-cd "${PATH_RESULTS}"
+# get starting time:
+start=`date +%s`
 
+# Display useful info for the log, such as SCT version, RAM and CPU cores available
+sct_check_dependencies -short
+
+# Go to folder where data will be copied and processed
+cd $PATH_DATA_PROCESSED
 # Copy source images
-mkdir -p data
-cd data
-cp -r "${PATH_DATA}/${SUBJECT}" .
+rsync -avzh $PATH_DATA/$SUBJECT .
+
 
 # T2w
 # ======================================================================================================================
@@ -169,3 +180,13 @@ for file in "${FILES_TO_CHECK[@]}"; do
     echo "${SUBJECT}/${file} does not exist" >> "${PATH_LOG}/error.log"
   fi
 done
+
+# Display useful info for the log
+end=`date +%s`
+runtime=$((end-start))
+echo
+echo "~~~"
+echo "SCT version: `sct_version`"
+echo "Ran on:      `uname -nsr`"
+echo "Duration:    $(($runtime / 3600))hrs $((($runtime / 60) % 60))min $(($runtime % 60))sec"
+echo "~~~"
