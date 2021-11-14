@@ -11,6 +11,14 @@
 #
 # Author: Julien Cohen-Adad
 
+# The following global variables are retrieved from the caller sct_run_batch
+# but could be overwritten by uncommenting the lines below:
+# PATH_DATA_PROCESSED="~/data_processed"
+# PATH_RESULTS="~/results"
+# PATH_LOG="~/log"
+# PATH_QC="~/qc"
+
+
 # BASH SETTINGS
 # ======================================================================================================================
 
@@ -22,6 +30,7 @@ set -e
 
 # Exit if user presses CTRL+C (Linux) or CMD+C (OSX)
 trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
+
 
 # CONVENIENCE FUNCTIONS
 # ======================================================================================================================
@@ -37,14 +46,17 @@ label_if_does_not_exist() {
   local file_seg="$2"
   # Update global variable with segmentation file name
   FILELABEL="${file}_labels"
-  if [ -e "${PATH_SEGMANUAL}/${file}_labels-manual.nii.gz" ]; then
-    echo "Found manual label: ${PATH_SEGMANUAL}/${file}_labels-manual.nii.gz"
-    rsync -avzh "${PATH_SEGMANUAL}/${file}_labels-manual.nii.gz" "${FILELABEL}.nii.gz"
+  FILELABELMANUAL="${PATH_DATA}/derivatives/labels/${SUBJECT}/anat/${FILELABEL}-manual.nii.gz"
+  echo "Looking for manual label: $FILELABELMANUAL"
+  if [[ -e $FILELABELMANUAL ]]; then
+    echo "Found! Using manual labels."
+    rsync -avzh $FILELABELMANUAL ${FILELABEL}.nii.gz
   else
+    echo "Not found. Proceeding with automatic labeling."
     # Generate labeled segmentation
-    sct_label_vertebrae -i "${file}.nii.gz" -s "${file_seg}.nii.gz" -c t2 -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
+    sct_label_vertebrae -i ${file}.nii.gz -s ${file_seg}.nii.gz -c t2 -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
     # Create labels in the cord at C3 and C5 mid-vertebral levels
-    sct_label_utils -i "${file_seg}_labeled.nii.gz" -vert-body 3,5 -o "${FILELABEL}.nii.gz"
+    sct_label_utils -i ${file_seg}_labeled.nii.gz -vert-body 3,5 -o ${FILELABEL}.nii.gz
   fi
 }
 
@@ -59,32 +71,38 @@ segment_if_does_not_exist() {
   local contrast="$2"
   # Update global variable with segmentation file name
   FILESEG="${file}_seg"
-  if [ -e "${PATH_SEGMANUAL}/${FILESEG}-manual.nii.gz" ]; then
-    echo "Found manual segmentation: ${PATH_SEGMANUAL}/${FILESEG}-manual.nii.gz"
-    rsync -avzh "${PATH_SEGMANUAL}/${FILESEG}-manual.nii.gz" "${FILESEG}.nii.gz"
-    sct_qc -i "${file}.nii.gz" -s "${FILESEG}.nii.gz" -p sct_deepseg_sc -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
+  FILESEGMANUAL="${PATH_DATA}/derivatives/labels/${SUBJECT}/anat/${FILESEG}-manual.nii.gz"
+  echo
+  echo "Looking for manual segmentation: $FILESEGMANUAL"
+  if [[ -e $FILESEGMANUAL ]]; then
+    echo "Found! Using manual segmentation."
+    rsync -avzh $FILESEGMANUAL ${FILESEG}.nii.gz
+    sct_qc -i ${file}.nii.gz -s ${FILESEG}.nii.gz -p sct_deepseg_sc -qc ${PATH_QC} -qc-subject ${SUBJECT}
   else
+    echo "Not found. Proceeding with automatic segmentation."
     # Segment spinal cord
-    sct_deepseg_sc -i "${file}.nii.gz" -c "${contrast}" -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
+    sct_deepseg_sc -i ${file}.nii.gz -c $contrast -qc ${PATH_QC} -qc-subject ${SUBJECT}
   fi
 }
+
 
 # SCRIPT STARTS HERE
 # ======================================================================================================================
 
-# The following global variables are retrieved from config.yml but could be overwritten by uncommenting:
-# PATH_QC="~/qc"
-
 # Retrieve input params
 SUBJECT=$1
 
-# Go to results folder, where most of the outputs will be located
-cd "${PATH_RESULTS}"
+# get starting time:
+start=`date +%s`
 
+# Display useful info for the log, such as SCT version, RAM and CPU cores available
+sct_check_dependencies -short
+
+# Go to folder where data will be copied and processed
+cd $PATH_DATA_PROCESSED
 # Copy source images
-mkdir -p data
-cd data
-cp -r "${PATH_DATA}/${SUBJECT}" .
+rsync -avzh $PATH_DATA/$SUBJECT .
+
 
 # T2w
 # ======================================================================================================================
@@ -162,3 +180,13 @@ for file in "${FILES_TO_CHECK[@]}"; do
     echo "${SUBJECT}/${file} does not exist" >> "${PATH_LOG}/error.log"
   fi
 done
+
+# Display useful info for the log
+end=`date +%s`
+runtime=$((end-start))
+echo
+echo "~~~"
+echo "SCT version: `sct_version`"
+echo "Ran on:      `uname -nsr`"
+echo "Duration:    $(($runtime / 3600))hrs $((($runtime / 60) % 60))min $(($runtime % 60))sec"
+echo "~~~"
