@@ -1,5 +1,5 @@
 
-Spinal cord analysis pipeline for the SCT course.
+Spinal cord analysis pipeline for the [SCT course and webpage tutorials](https://spinalcordtoolbox.com/user_section/tutorials.html).
 
 
 GETTING STARTED
