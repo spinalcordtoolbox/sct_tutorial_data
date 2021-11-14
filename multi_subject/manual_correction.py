@@ -12,6 +12,12 @@
 # For usage, type: python manual_correction.py -h
 #
 # Authors: Jan Valosek, Julien Cohen-Adad, Sandrine Bédard
+#
+# Notes:
+#     - This script is a modified version of the script used in the ukbiobank-spinalcord-csa project.
+#       (https://github.com/sct-pipeline/ukbiobank-spinalcord-csa/blob/master/pipeline_ukbiobank/cli/manual_correction.py)
+#     - There is also currently an open issue in SCT to incorporate this functionality into an 
+#       SCT script. (https://github.com/spinalcordtoolbox/spinalcordtoolbox/issues/3353)
 
 import argparse
 import glob
