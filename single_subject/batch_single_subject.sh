@@ -239,15 +239,15 @@ sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 53 -vert 2:4 -ver
 cd ../dmri
 # Preprocessing steps
 # Compute mean dMRI from dMRI data
-sct_maths -i dmri.nii.gz -mean t -o dmri_mean.nii.gz
+sct_dmri_separate_b0_and_dwi -i dmri.nii.gz -bvec bvecs.txt 
 # Segment SC on mean dMRI data
 # Note: This segmentation does not need to be accurate-- it is only used to create a mask around the cord
-sct_deepseg_sc -i dmri_mean.nii.gz -c dwi -qc ~/qc_singleSubj
+sct_deepseg_sc -i dmri_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
 # Create mask (for subsequent cropping)
-sct_create_mask -i dmri_mean.nii.gz -p centerline,dmri_mean_seg.nii.gz -f cylinder -size 35mm
+sct_create_mask -i dmri_dwi_mean.nii.gz -p centerline,dmri_dwi_mean_seg.nii.gz -f cylinder -size 35mm
 
 # Motion correction (moco)
-sct_dmri_moco -i dmri.nii.gz -m mask_dmri_mean.nii.gz -bvec bvecs.txt -qc ~/qc_singleSubj -qc-seg dmri_mean_seg.nii.gz
+sct_dmri_moco -i dmri.nii.gz -m mask_dmri_dwi_mean.nii.gz -bvec bvecs.txt -qc ~/qc_singleSubj -qc-seg dmri_dwi_mean_seg.nii.gz
 # Check results in the QC report
 
 # Segment SC on motion-corrected mean dwi data (check results in the QC report)
