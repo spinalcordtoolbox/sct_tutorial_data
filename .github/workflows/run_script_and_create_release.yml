@@ -53,8 +53,9 @@ jobs:
         ref: ${{ env.GITHUB_SHA }}
         path: ${{ github.event.repository.name }}
 
-    - name: Run batch_single_subject.sh to generate intermediate files
+    - name: Copy and run batch_single_subject.sh to generate intermediate files
       run: |
+        cp spinalcordtoolbox/batch_single_subject.sh "${{ github.event.repository.name }}/single_subject"
         cd "${{ github.event.repository.name }}/single_subject"
         ./batch_single_subject.sh
 
@@ -63,12 +64,25 @@ jobs:
         cd ${{ github.event.repository.name }}
         awk -F, '{ print $1,$2 }' tutorial-datasets.csv | xargs -l zip -ur
 
+    # We commit the upstream changes to batch_single_subject.sh only after
+    # tutorial datasets are successfully created
+    - name: Commit new changes to batch_single_subject.sh
+      run: |
+        git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "GitHub Actions Bot"
+        git add "${{ github.event.repository.name }}/single_subject/batch_single_subject.sh"
+        git commit -m "Update batch_single_subject.sh for ${{ github.event.inputs.release_title }}"
+        git push
+        echo "HEAD_SHA=$(git rev-parse HEAD)" >> $GITHUB_ENV
+      # Only update batch_single_subject.sh if workflow is run manually. (This allows the workflow to double as a PR test.)
+      if: github.event_name == 'workflow_dispatch'
+
     - uses: ncipollo/release-action@v1
       name: Create release ('${{ github.event.inputs.release_title }}')
       id: create_release
       with:
         tag: ${{ github.event.inputs.release_title }}
-        commit: ${{ env.GITHUB_SHA }}
+        commit: ${{ env.HEAD_SHA }}
         token: ${{ secrets.GITHUB_TOKEN }}
       # Only create release if workflow is run manually. (This allows the workflow to double as a PR test.)
       if: github.event_name == 'workflow_dispatch'
