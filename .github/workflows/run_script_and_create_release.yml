@@ -32,6 +32,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: spinalcordtoolbox/spinalcordtoolbox
+        ref: jn/3508-copy-batch_single_subject.sh
         path: spinalcordtoolbox
 
     # install_sct edits ~/.bashrc, but those environment changes don't get passed to subsequent steps in GH Actions.
