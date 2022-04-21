@@ -3,6 +3,9 @@
 # Process data. This script is designed to be run in the folder for a single subject, however 'sct_run_batch' can be
 # used to run this script multiple times in parallel across a multi-subject BIDS dataset.
 #
+# This script only deals with T2w and MT images for example purpose. For a more comprehensive qMRI analysis, see for
+# example this script: https://github.com/spine-generic/spine-generic/blob/master/process_data.sh
+#
 # Usage:
 #   ./process_data.sh <SUBJECT>
 #
