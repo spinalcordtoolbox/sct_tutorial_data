@@ -155,7 +155,7 @@ fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm gre
 
 
 
-# Non-template registration: Computing MTR using MT0/MT1 coregistration
+# Computing MTR using MT0/MT1 coregistration
 # ======================================================================================================================
 
 # Register mt0->mt1 using z-regularized slicewise translations (algo=slicereg)
@@ -169,7 +169,7 @@ sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 
 
 
-# Non-template registration: Contrast-agnostic registration (Coregistering T1w and T2w images)
+# Contrast-agnostic registration
 # ======================================================================================================================
 
 # 1. t2w preprocessing (cropping around spinal cord)
