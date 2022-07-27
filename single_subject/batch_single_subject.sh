@@ -172,13 +172,13 @@ sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 # Contrast-agnostic registration
 # ======================================================================================================================
 
-# 1. t2w preprocessing (cropping around spinal cord)
+# 1. T2w preprocessing (cropping around spinal cord)
 cd ../t2
 sct_deepseg_sc -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
 sct_create_mask -i t2.nii.gz -p centerline,t2_seg.nii.gz -size 35mm -f cylinder -o mask_t2.nii.gz
 sct_crop_image -i t2.nii.gz -m mask_t2.nii.gz
 
-# 2. t1w preprocessing (cropping around spinal cord)
+# 2. T1w preprocessing (cropping around spinal cord)
 cd ../t1
 sct_deepseg_sc -i t1.nii.gz -c t1 -qc ~/qc_singleSubj
 sct_create_mask -i t1.nii.gz -p centerline,t1_seg.nii.gz -size 35mm -f cylinder -o mask_t1.nii.gz
