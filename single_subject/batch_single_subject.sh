@@ -185,7 +185,8 @@ sct_create_mask -i t1.nii.gz -p centerline,t1_seg.nii.gz -size 35mm -f cylinder 
 sct_crop_image -i t1.nii.gz -m mask_t1.nii.gz
 
 # 3. Perform registration
-sct_register_multimodal -i t1_crop.nii.gz -d ../t2/t2_crop.nii.gz -param step=1,type=im,algo=dl -qc ~/qc_singleSubj
+# NB: `-dseg` is not necessary for registration, but is provided for the `-qc` reporting to help with spinal cord visualization
+sct_register_multimodal -i t1_crop.nii.gz -d ../t2/t2_crop.nii.gz -param step=1,type=im,algo=dl -qc ~/qc_singleSubj -dseg ../t2/t2_seg.nii.gz
 
 
 
