@@ -155,7 +155,7 @@ fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm gre
 
 
 
-# Computing MTR
+# Computing MTR using MT0/MT1 coregistration
 # ======================================================================================================================
 
 # Register mt0->mt1 using z-regularized slicewise translations (algo=slicereg)
@@ -166,6 +166,27 @@ fsleyes mt1.nii.gz mt0_reg.nii.gz &
 # Compute MTR
 sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 # Note: MTR is given in percentage.
+
+
+
+# Contrast-agnostic registration
+# ======================================================================================================================
+
+# 1. T2w preprocessing (cropping around spinal cord)
+cd ../t2
+sct_deepseg_sc -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
+sct_create_mask -i t2.nii.gz -p centerline,t2_seg.nii.gz -size 35mm -f cylinder -o mask_t2.nii.gz
+sct_crop_image -i t2.nii.gz -m mask_t2.nii.gz
+
+# 2. T1w preprocessing (cropping around spinal cord)
+cd ../t1
+sct_deepseg_sc -i t1.nii.gz -c t1 -qc ~/qc_singleSubj
+sct_create_mask -i t1.nii.gz -p centerline,t1_seg.nii.gz -size 35mm -f cylinder -o mask_t1.nii.gz
+sct_crop_image -i t1.nii.gz -m mask_t1.nii.gz
+
+# 3. Perform registration
+# NB: `-dseg` is not necessary for registration, but is provided for the `-qc` reporting to help with spinal cord visualization
+sct_register_multimodal -i t1_crop.nii.gz -d ../t2/t2_crop.nii.gz -param step=1,type=im,algo=dl -qc ~/qc_singleSubj -dseg ../t2/t2_seg.nii.gz
 
 
 
