@@ -96,7 +96,7 @@ segment_if_does_not_exist() {
 SUBJECT="${1}"
 
 # get starting time:
-start=`date +%s`
+start=$(date +%s)
 
 # Display useful info for the log, such as SCT version, RAM and CPU cores available
 sct_check_dependencies -short
@@ -185,11 +185,11 @@ for file in "${FILES_TO_CHECK[@]}"; do
 done
 
 # Display useful info for the log
-end=`date +%s`
+end=$(date +%s)
 runtime=$((end-start))
 echo
 echo "~~~"
-echo "SCT version: `sct_version`"
-echo "Ran on:      `uname -nsr`"
+echo "SCT version: $(sct_version)"
+echo "Ran on:      $(uname -nsr)"
 echo "Duration:    $((runtime / 3600))hrs $(((runtime / 60) % 60))min $((runtime % 60))sec"
 echo "~~~"
