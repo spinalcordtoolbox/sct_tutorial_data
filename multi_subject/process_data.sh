@@ -51,7 +51,7 @@ label_if_does_not_exist() {
   FILELABEL="${file}"_labels
   FILELABELMANUAL="${PATH_DATA}"/derivatives/labels/"${SUBJECT}"/anat/"${FILELABEL}"-manual.nii.gz
   echo "Looking for manual label: ${FILELABELMANUAL}"
-  if [[ -e ${FILELABELMANUAL} ]]; then
+  if [[ -e "${FILELABELMANUAL}" ]]; then
     echo "Found! Using manual labels."
     rsync -avzh "${FILELABELMANUAL}" "${FILELABEL}".nii.gz
   else
@@ -77,7 +77,7 @@ segment_if_does_not_exist() {
   FILESEGMANUAL="${PATH_DATA}"/derivatives/labels/"${SUBJECT}"/anat/"${FILESEG}"-manual.nii.gz
   echo
   echo "Looking for manual segmentation: ${FILESEGMANUAL}"
-  if [[ -e ${FILESEGMANUAL} ]]; then
+  if [[ -e "${FILESEGMANUAL}" ]]; then
     echo "Found! Using manual segmentation."
     rsync -avzh "${FILESEGMANUAL}" "${FILESEG}".nii.gz
     sct_qc -i "${file}".nii.gz -s "${FILESEG}".nii.gz -p sct_deepseg_sc -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
@@ -96,7 +96,7 @@ segment_if_does_not_exist() {
 SUBJECT="${1}"
 
 # get starting time:
-start=$(date +%s)
+start="$(date +%s)"
 
 # Display useful info for the log, such as SCT version, RAM and CPU cores available
 sct_check_dependencies -short
@@ -134,7 +134,7 @@ file_mt1="${SUBJECT}"_acq-MTon_MTS
 file_mt0="${SUBJECT}"_acq-MToff_MTS
 # Segment spinal cord
 segment_if_does_not_exist "${file_mt1}" "t2s"
-file_mt1_seg=$FILESEG
+file_mt1_seg="${FILESEG}"
 # Create mask
 sct_create_mask -i "${file_mt1}".nii.gz -p centerline,"${file_mt1_seg}".nii.gz -size 45mm
 # Crop data for faster processing
@@ -185,11 +185,11 @@ for file in "${FILES_TO_CHECK[@]}"; do
 done
 
 # Display useful info for the log
-end=$(date +%s)
-runtime=$((end-start))
+end="$(date +%s)"
+runtime="$((end-start))"
 echo
 echo "~~~"
 echo "SCT version: $(sct_version)"
 echo "Ran on:      $(uname -nsr)"
-echo "Duration:    $((runtime / 3600))hrs $(((runtime / 60) % 60))min $((runtime % 60))sec"
+echo "Duration:    $((runtime / 3600))hrs $(( (runtime / 60) % 60))min $((runtime % 60))sec"
 echo "~~~"
