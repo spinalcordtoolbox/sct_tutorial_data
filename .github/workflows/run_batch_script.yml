@@ -53,7 +53,14 @@ jobs:
     - name: Output full log for sanity checking
       run: |
         cd "${{ github.event.repository.name }}/multi_subject/output/log"
-        cat process_data_sub-01.log
+        for logfile in process_data_sub-01.log err.process_data_sub-01.log; do
+            if [[ -e "${logfile}" ]]; then
+                echo "=== Contents of ${logfile} ==="
+                cat "${logfile}"
+            else
+                echo "=== No file ${logfile} ==="
+            fi
+        done
 
     - name: Check that script executed without error
       run: |
