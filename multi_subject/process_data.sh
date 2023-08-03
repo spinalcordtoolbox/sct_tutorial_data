@@ -145,9 +145,12 @@ file_mt1="${file_mt1}_crop"
 # Tips: here we only use rigid transformation because both images have very
 # similar sequence parameters. We don't want to use SyN/BSplineSyN to avoid
 # introducing spurious deformations.
-sct_register_multimodal -i "${file_mt0}.nii.gz" -d "${file_mt1}.nii.gz" \
+sct_register_multimodal -i "${file_mt0}.nii.gz" \
+                        -d "${file_mt1}.nii.gz" \
+                        -dseg "${file_mt1}_seg.nii.gz" \
                         -param step=1,type=im,algo=rigid,slicewise=1,metric=CC \
-                        -x spline -qc "${PATH_QC}"
+                        -x spline \
+                        -qc "${PATH_QC}"
 # Register template->mt1
 # Tips: here we only use the segmentations due to poor SC/CSF contrast at the bottom slice.
 # Tips: First step: slicereg based on images, with large smoothing to capture
