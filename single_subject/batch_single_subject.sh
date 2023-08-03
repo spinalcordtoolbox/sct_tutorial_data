@@ -23,7 +23,7 @@ echo -e "\nStarted at: $(date +%x_%r)"
 # Source: https://unix.stackexchange.com/a/497540
 if ! command -v fsleyes > /dev/null; then
   fsleyes() {
-    printf 'WARNING: FSLeyes is not installed, so the following command was skipped:\nfsleyes %s\n' "${*}";
+    printf 'WARNING: FSLeyes is not installed, so the following command was skipped:\nfsleyes %s\n' "${*@Q}";
   };
 fi
 
