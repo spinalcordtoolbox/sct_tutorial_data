@@ -23,7 +23,7 @@ echo -e "\nStarted at: $(date +%x_%r)"
 # Source: https://unix.stackexchange.com/a/497540
 if ! command -v fsleyes > /dev/null; then
   fsleyes() {
-    printf 'WARNING: FSLeyes is not installed, so the following command was skipped:\nfsleyes %s\n' "$*";
+    printf 'WARNING: FSLeyes is not installed, so the following command was skipped:\nfsleyes %s\n' "${*@Q}";
   };
 fi
 
@@ -136,7 +136,7 @@ sct_create_mask -i mt1.nii.gz -p centerline,mt1_seg.nii.gz -size 35mm -f cylinde
 
 # Register template->mt1. The flag -initwarp ../t2/warp_template2anat.nii.gz initializes the registration using the
 # template->t2 transformation which was previously estimated
-sct_register_multimodal -i $SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz -iseg $SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -owarp warp_template2mt.nii.gz -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_cord.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -owarp warp_template2mt.nii.gz -qc ~/qc_singleSubj
 # Tips: Here we only use the segmentations (type=seg) to minimize the sensitivity of the registration procedure to
 #       image artifacts.
 # Tips: Step 1: algo=centermass to align source and destination segmentations, then Step 2: algo=bpslinesyn to adapt the
@@ -228,13 +228,13 @@ sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_
 
 # Register template->t2s (using warping field generated from template<->t2 registration)
 # Tips: Here we use the WM seg for the iseg/dseg fields in order to account for both the cord and the GM shape.
-sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" -iseg "${SCT_DIR}/data/PAM50/template/PAM50_wm.nii.gz" -d t2s.nii.gz -dseg t2s_wmseg.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2t2s.nii.gz -owarpinv warp_t2s2template.nii.gz -param step=1,type=seg,algo=rigid:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_wm.nii.gz -d t2s.nii.gz -dseg t2s_wmseg.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2t2s.nii.gz -owarpinv warp_t2s2template.nii.gz -param step=1,type=seg,algo=rigid:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -qc ~/qc_singleSubj
 # Warp template
 sct_warp_template -d t2s.nii.gz -w warp_template2t2s.nii.gz -qc ~/qc_singleSubj
 
 cd ../mt
 # Register template->mt via t2s to account for GM segmentation
-sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2.nii.gz" -iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" -d mt1.nii.gz -dseg mt1_seg.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -m mask_mt1.nii.gz -initwarp ../t2s/warp_template2t2s.nii.gz -owarp warp_template2mt.nii.gz -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_cord.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -m mask_mt1.nii.gz -initwarp ../t2s/warp_template2t2s.nii.gz -owarp warp_template2mt.nii.gz -qc ~/qc_singleSubj
 # Warp template
 sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -qc ~/qc_singleSubj
 # Check results
@@ -279,7 +279,7 @@ sct_deepseg_sc -i dmri_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
 #       -param, so it will not make a difference here)
 # Note: the flag “-initwarpinv" provides a transformation dmri->template, in case you would like to bring all your DTI
 #       metrics in the PAM50 space (e.g. group averaging of FA maps)
-sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t1.nii.gz" -iseg "${SCT_DIR}/data/PAM50/template/PAM50_cord.nii.gz" -d dmri_moco_dwi_mean.nii.gz -dseg dmri_moco_dwi_mean_seg.nii.gz -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -owarp warp_template2dmri.nii.gz -owarpinv warp_dmri2template.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t1.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_cord.nii.gz -d dmri_moco_dwi_mean.nii.gz -dseg dmri_moco_dwi_mean_seg.nii.gz -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -owarp warp_template2dmri.nii.gz -owarpinv warp_dmri2template.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -qc ~/qc_singleSubj
 # Warp template (so 'label/atlas' can be used to extract metrics)
 sct_warp_template -d dmri_moco_dwi_mean.nii.gz -w warp_template2dmri.nii.gz -qc ~/qc_singleSubj
 # Check results in the QC report
@@ -313,7 +313,7 @@ sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz -qc ~/qc_singleSubj -qc-seg t2_
 #       ANTs_SyN superpower to find a suitable transformation between the PAM50_t2s and the fMRI scan. We don't want to
 #       put too many iterations because this registration is very sensitive to the artifacts (drop out) in the image.
 #       Also, we want a 3D transformation (not 2D) because we need the through-z regularization.
-sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" -d fmri_moco_mean.nii.gz -dseg t2_seg_reg.nii.gz -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -owarp warp_template2fmri.nii.gz -owarpinv warp_fmri2template.nii.gz -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz -d fmri_moco_mean.nii.gz -dseg t2_seg_reg.nii.gz -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -owarp warp_template2fmri.nii.gz -owarpinv warp_fmri2template.nii.gz -qc ~/qc_singleSubj
 # Check results in the QC report
 
 # Warp template with the spinal levels (-s 1)
