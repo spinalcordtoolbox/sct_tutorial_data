@@ -122,6 +122,30 @@ sct_detect_pmj -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
 sct_process_segmentation -i t2_seg.nii.gz -pmj t2_pmj.nii.gz -pmj-distance 64 -pmj-extent 30 -o csa_pmj.csv -qc ~/qc_singleSubj -qc-image t2.nii.gz
 
 
+
+
+# Computing normalized shape metrics for compressed data
+# ======================================================================================================================
+cd ../t2_compression
+# Segment the spinal cord of the compressed spine
+sct_deepseg_sc -i t2_compressed.nii.gz -c t2 -qc ~/qc_singleSubj
+# Label the vertebrae using the compressed spinal cord segmentation
+sct_label_vertebrae -i t2_compressed.nii.gz -s t2_compressed_seg.nii.gz -c t2 -qc ~/qc_singleSubj
+# Generate labels for each spinal cord compression site.
+# Note: Normally this would be done manually using fsleyes' "Edit mode -> Create mask" functionality. (Uncomment below)
+#
+# fsleyes t2_compressed.nii.gz &
+#
+# However, since this is an automated script with example data, we will place the labels at known locations for the
+# sake of reproducing the results in the tutorial.
+sct_label_utils -i t2_compressed.nii.gz -create 30,152,99,1.0:30,156,118,1.0:30,157,140,1.0:31,160,159,1.0 -o t2_compressed_labels-compression.nii.gz
+# Compute ratio between AP-diameter at level of compression vs. above/below
+sct_compute_compression -i t2_compressed_seg.nii.gz -vertfile t2_compressed_seg_labeled.nii.gz -l t2_compressed_labels-compression.nii.gz -metric diameter_AP -normalize-hc 0 -o ap_ratio.csv
+# Compute ratio of AP diameter, normalized with healthy controls using `-normalize-hc 1`.
+sct_compute_compression -i t2_compressed_seg.nii.gz -vertfile t2_compressed_seg_labeled.nii.gz -l t2_compressed_labels-compression.nii.gz -metric diameter_AP -normalize-hc 1 -o ap_ratio_norm_PAM50.csv
+
+
+
 # Registering additional MT data to the PAM50 template
 # ======================================================================================================================
 
