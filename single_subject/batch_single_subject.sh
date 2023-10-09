@@ -164,7 +164,7 @@ sct_deepseg -i t2/t2_crop.nii.gz -task seg_lumbar_sc_t2w
 #
 # However, since this is an automated script with example data, we will place the labels at known locations for the
 # sake of reproducing the results in the tutorial.
-sct_label_utils -i t2/t2_crop.nii.gz -create 27,80,80,99 -o t2/t2_crop_label.nii.gz
+sct_label_utils -i t2/t2_crop.nii.gz -create 27,80,80,60 -o t2/t2_crop_label.nii.gz
 sct_label_utils -i t2/t2_crop_label.nii.gz -create-add 27,76,187,17 -o t2/t2_crop_label.nii.gz
 
 # Register the image to the template using segmentation and labels
