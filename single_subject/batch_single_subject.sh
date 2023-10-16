@@ -164,8 +164,7 @@ sct_deepseg -i t2_crop.nii.gz -task seg_lumbar_sc_t2w
 #
 # However, since this is an automated script with example data, we will place the labels at known locations for the
 # sake of reproducing the results in the tutorial.
-sct_label_utils -i t2_crop.nii.gz -create 27,80,80,60 -o t2_crop_label.nii.gz
-sct_label_utils -i t2_crop_label.nii.gz -create-add 27,76,187,17 -o t2_crop_label.nii.gz
+sct_label_utils -i t2.nii.gz -create 22,77,187,17:27,79,80,60 -o t2_crop_labels.nii.gz
 
 # Register the image to the template using segmentation and labels
 # TODO: Uncomment when https://github.com/spinalcordtoolbox/PAM50/pull/27 gets merged and a new PAM50 release is made.
