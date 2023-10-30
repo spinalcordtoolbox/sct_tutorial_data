@@ -217,8 +217,6 @@ sct_register_multimodal -i t1_crop.nii.gz -d ../t2/t2_crop.nii.gz -param step=1,
 # ======================================================================================================================
 cd ../t2_lumbar
 
-# Crop full-body image to isolate the lumbar region (lowest 200 axial slices)
-sct_crop_image -i t2.nii.gz -zmax 200 -o t2_lumbar.nii.gz
 # Use lumbar-specific `sct_deepseg` model to segment the spinal cord
 sct_deepseg -i t2_lumbar.nii.gz -task seg_lumbar_sc_t2w
 
