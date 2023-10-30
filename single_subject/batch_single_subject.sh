@@ -129,7 +129,7 @@ sct_compute_compression -i t2_compressed_seg.nii.gz -vertfile t2_compressed_seg_
 
 # Registering T2 data to the PAM50 template
 # ======================================================================================================================
-
+cd ../t2
 # Register t2->template.
 sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -l t2_labels_vert.nii.gz -c t2 -qc ~/qc_singleSubj
 # Note: By default the PAM50 template is selected. You can also select your own template using flag -t.
