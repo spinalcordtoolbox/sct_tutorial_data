@@ -85,31 +85,13 @@ sct_qc -i t2.nii.gz -s t2_labels_vert.nii.gz -p sct_label_utils -qc ~/qc_singleS
 
 
 
-# Registering T2 data to the PAM50 template
-# ======================================================================================================================
-
-# Register t2->template.
-sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -l t2_labels_vert.nii.gz -c t2 -qc ~/qc_singleSubj
-# Note: By default the PAM50 template is selected. You can also select your own template using flag -t.
-
-# Warp template objects (T2, cord segmentation, vertebral levels, etc.). Here we use -a 0 because we don’t need the
-# white matter atlas at this point.
-sct_warp_template -d t2.nii.gz -w warp_template2anat.nii.gz -a 0 -qc ~/qc_singleSubj
-# Note: A folder label/template/ is created, which contains template objects in the space of the subject. The file
-#       info_label.txt lists all template files.
-
-# Check results using Fsleyes.
-fsleyes t2.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
-
-
-
 # Computing shape metrics
 # ======================================================================================================================
 
 # Compute cross-sectional area (CSA) of spinal cord and average it across levels C3 and C4
-sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile ./label/template/PAM50_levels.nii.gz -o csa_c3c4.csv
+sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile t2_seg_labeled.nii.gz -o csa_c3c4.csv
 # Aggregate CSA value per level
-sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile ./label/template/PAM50_levels.nii.gz -perlevel 1 -o csa_perlevel.csv
+sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile t2_seg_labeled.nii.gz -perlevel 1 -o csa_perlevel.csv
 # Aggregate CSA value per slices
 sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -perslice 1 -o csa_perslice.csv
 
@@ -120,7 +102,6 @@ sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -perslice 1 -o csa_perslice.c
 sct_detect_pmj -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
 # Check the QC to make sure PMJ was properly detected, then compute CSA using the distance from the PMJ:
 sct_process_segmentation -i t2_seg.nii.gz -pmj t2_pmj.nii.gz -pmj-distance 64 -pmj-extent 30 -o csa_pmj.csv -qc ~/qc_singleSubj -qc-image t2.nii.gz
-
 
 
 
@@ -146,32 +127,21 @@ sct_compute_compression -i t2_compressed_seg.nii.gz -vertfile t2_compressed_seg_
 
 
 
-# Registering lumbar data to the PAM50 template
+# Registering T2 data to the PAM50 template
 # ======================================================================================================================
-cd ../t2_lumbar
+cd ../t2
+# Register t2->template.
+sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -l t2_labels_vert.nii.gz -c t2 -qc ~/qc_singleSubj
+# Note: By default the PAM50 template is selected. You can also select your own template using flag -t.
 
-# Crop full-body image to isolate the lumbar region (lowest 200 axial slices)
-sct_crop_image -i t2.nii.gz -zmax 200
+# Warp template objects (T2, cord segmentation, vertebral levels, etc.). Here we use -a 0 because we don’t need the
+# white matter atlas at this point.
+sct_warp_template -d t2.nii.gz -w warp_template2anat.nii.gz -a 0 -qc ~/qc_singleSubj
+# Note: A folder label/template/ is created, which contains template objects in the space of the subject. The file
+#       info_label.txt lists all template files.
 
-# Use lumbar-specific `sct_deepseg` model to segment the spinal cord
-sct_deepseg -i t2_crop.nii.gz -task seg_lumbar_sc_t2w
-
-
-# Generate labels for the 2 spinal cord landmarks: cauda equinea ('99') and T9-T10 disc ('17')
-# Note: Normally this would be done manually using fsleyes' "Edit mode -> Create mask" functionality. (Uncomment below)
-#
-# fsleyes t2.nii.gz &
-#
-# However, since this is an automated script with example data, we will place the labels at known locations for the
-# sake of reproducing the results in the tutorial.
-sct_label_utils -i t2.nii.gz -create 22,77,187,17:27,79,80,60 -o t2_crop_labels.nii.gz
-
-# Register the image to the template using segmentation and labels
-sct_register_to_template -i t2_crop.nii.gz \
-                         -s t2_crop_seg.nii.gz \
-                         -ldisc t2_crop_label.nii.gz \
-                         -c t2 -qc qc \
-                         -param step=1,type=seg,algo=centermassrot:step=2,type=seg,algo=bsplinesyn,metric=MeanSquares,iter=3,slicewise=0:step=3,type=im,algo=syn,metric=CC,iter=3,slicewise=0
+# Check results using Fsleyes.
+fsleyes t2.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
 
 
 
@@ -243,6 +213,33 @@ sct_register_multimodal -i t1_crop.nii.gz -d ../t2/t2_crop.nii.gz -param step=1,
 
 
 
+# Registering lumbar data to the PAM50 template
+# ======================================================================================================================
+cd ../t2_lumbar
+
+# Crop full-body image to isolate the lumbar region (lowest 200 axial slices)
+sct_crop_image -i t2.nii.gz -zmax 200 -o t2_lumbar.nii.gz
+# Use lumbar-specific `sct_deepseg` model to segment the spinal cord
+sct_deepseg -i t2_lumbar.nii.gz -task seg_lumbar_sc_t2w
+
+# Generate labels for the 2 spinal cord landmarks: cauda equinea ('99') and T9-T10 disc ('17')
+# Note: Normally this would be done manually using fsleyes' "Edit mode -> Create mask" functionality. (Uncomment below)
+#
+# fsleyes t2.nii.gz &
+#
+# However, since this is an automated script with example data, we will place the labels at known locations for the
+# sake of reproducing the results in the tutorial.
+sct_label_utils -i t2.nii.gz -create 22,77,187,17:27,79,80,60 -o t2_lumbar_labels.nii.gz
+
+# Register the image to the template using segmentation and labels
+sct_register_to_template -i t2_lumbar.nii.gz \
+                         -s t2_lumbar_seg.nii.gz \
+                         -ldisc t2_lumbar_labels.nii.gz \
+                         -c t2 -qc qc \
+                         -param step=1,type=seg,algo=centermassrot:step=2,type=seg,algo=bsplinesyn,metric=MeanSquares,iter=3,slicewise=0:step=3,type=im,algo=syn,metric=CC,iter=3,slicewise=0
+
+
+
 # Gray/white matter: Segmentation
 # ======================================================================================================================
 
@@ -293,6 +290,8 @@ sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -qc ~/qc_singleSubj
 # Check results
 fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 100.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 100.0 &
 
+
+
 # Atlas-based analysis (Extracting metrics (MTR) in gray/white matter tracts)
 # ======================================================================================================================
 
@@ -305,6 +304,7 @@ sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 4,5 -z 5:15 -o mt
 # You can specify the vertebral levels to extract MTR from. For example, to quantify MTR between C2 and C4 levels in the
 # dorsal column (combined label: #53) using weighted average:
 sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 53 -vert 2:4 -vertfile label/template/PAM50_levels.nii.gz -o mtr_in_dc.csv
+
 
 
 # Diffusion-weighted MRI
