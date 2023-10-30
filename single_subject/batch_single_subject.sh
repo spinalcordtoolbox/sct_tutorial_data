@@ -5,7 +5,7 @@
 # N.B. The parameters were chosen to suit SCT's sample tutorial data. With your data,
 # it is worthwhile to explore the various parameters and tweak them to your situation.
 #
-# tested with Spinal Cord Toolbox (v5.3.0)
+# tested with Spinal Cord Toolbox (v6.1.0)
 
 # Script utilities
 # ======================================================================================================================
