@@ -5,7 +5,7 @@ data_vertebral-labeling,single_subject/data/t2/t2_seg.nii.gz
 data_template-registration,single_subject/data/t2/t2.nii.gz
 data_template-registration,single_subject/data/t2/t2_seg.nii.gz
 data_template-registration,single_subject/data/t2/t2_labels_vert.nii.gz
-data_lumbar-registration,single_subject/data/t2_lumbar/t2.nii.gz
+data_lumbar-registration,single_subject/data/t2_lumbar/t2_lumbar.nii.gz
 data_shape-metric-computation,single_subject/data/t2/t2_seg.nii.gz
 data_shape-metric-computation,single_subject/data/t2/label/template/PAM50_levels.nii.gz
 data_compression,single_subject/data/t2_compression/t2_compressed.nii.gz
