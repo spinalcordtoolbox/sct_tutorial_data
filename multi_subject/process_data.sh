@@ -49,7 +49,7 @@ label_if_does_not_exist() {
   local file_seg="${2}"
   # Update global variable with segmentation file name
   FILELABEL="${file}"_labels
-  FILELABELMANUAL="${PATH_DATA}"/derivatives/labels/"${SUBJECT}"/anat/"${FILELABEL}"-manual.nii.gz
+  FILELABELMANUAL="${PATH_DATA}"/derivatives/labels/"${SUBJECT}"/anat/"${FILELABEL}".nii.gz
   echo "Looking for manual label: ${FILELABELMANUAL}"
   if [[ -e "${FILELABELMANUAL}" ]]; then
     echo "Found! Using manual labels."
@@ -74,7 +74,7 @@ segment_if_does_not_exist() {
   local contrast="${2}"
   # Update global variable with segmentation file name
   FILESEG="${file}"_seg
-  FILESEGMANUAL="${PATH_DATA}"/derivatives/labels/"${SUBJECT}"/anat/"${FILESEG}"-manual.nii.gz
+  FILESEGMANUAL="${PATH_DATA}"/derivatives/labels/"${SUBJECT}"/anat/"${FILESEG}".nii.gz
   echo
   echo "Looking for manual segmentation: ${FILESEGMANUAL}"
   if [[ -e "${FILESEGMANUAL}" ]]; then
