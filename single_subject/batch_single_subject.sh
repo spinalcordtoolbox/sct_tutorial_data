@@ -276,7 +276,7 @@ sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_
 
 # Register template->t2s (using warping field generated from template<->t2 registration)
 # Tips: Here we use the WM seg for the iseg/dseg fields in order to account for both the cord and the GM shape.
-sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_wm.nii.gz -d t2s.nii.gz -dseg t2s_wmseg.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2t2s.nii.gz -owarpinv warp_t2s2template.nii.gz -param step=1,type=seg,algo=rigid:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_wm.nii.gz -d t2s.nii.gz -dseg t2s_wmseg.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2t2s.nii.gz -owarpinv warp_t2s2template.nii.gz -param step=1,type=seg,algo=rigid:step=2,type=seg,metric=CC,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,metric=CC,algo=syn,slicewise=1,iter=2 -qc ~/qc_singleSubj
 # Warp template
 sct_warp_template -d t2s.nii.gz -w warp_template2t2s.nii.gz -qc ~/qc_singleSubj
 
