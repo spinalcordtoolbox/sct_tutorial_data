@@ -29,7 +29,7 @@ jobs:
     steps:
 
     - name: Checkout spinalcordtoolbox
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: spinalcordtoolbox/spinalcordtoolbox
         path: spinalcordtoolbox
@@ -47,7 +47,7 @@ jobs:
         cat ~/.bashrc | grep "export PATH" | grep -o "/.*" | cut -d ':' -f 1 >> $GITHUB_PATH
 
     - name: "Checkout '${{ github.event.repository.name }}'"
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         ref: ${{ env.GITHUB_SHA }}
         path: ${{ github.event.repository.name }}
