@@ -1,0 +1,9 @@
+# This file is a sample "QC Fails" file. It shows that the "sub-05" 
+# segmentation has been marked as failing (e.g. due to leakage):
+
+FILES_SEG:
+    - output/data_processed/sub-05/anat/sub-05_T2w.nii.gz
+
+# You can use this file alongside the manual-correction script to correct the
+# sub-05 segmentation. Instructions for generating this file and using it to
+# perform manual corrections can be found in the SCT Course or SCT tutorials.
