@@ -48,7 +48,6 @@ sct_deepseg_sc -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
 # Vertebral labeling
 # ======================================================================================================================
 
-cd ../t2
 # Vertebral labeling
 sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -qc ~/qc_singleSubj
 # Check QC report: Go to your browser and do "refresh".
@@ -364,7 +363,7 @@ sct_warp_template -d fmri_moco_mean.nii.gz -w warp_template2fmri.nii.gz -a 0 -qc
 
 cd ../t1
 # Segment T1-weighted image (to be used in later steps)
-sct_deepseg_sc -i t2.nii.gz -c t1
+sct_deepseg_sc -i t1.nii.gz -c t1
 
 # Smooth spinal cord along centerline (extracted from the segmentation)
 sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
