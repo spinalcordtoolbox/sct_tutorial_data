@@ -16,6 +16,9 @@ name: "Run batch_single_subject.sh"
 #        - 'registration.zip', 'segmentation.zip', etc.: Files required by individual tutorials.
 
 on:
+  push:
+    branches:
+      - master
   pull_request:
   workflow_dispatch:
     inputs:
