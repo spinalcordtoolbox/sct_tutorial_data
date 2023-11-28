@@ -352,16 +352,11 @@ sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz -qc ~/qc_singleSubj -qc-seg t2_
 #       ANTs_SyN superpower to find a suitable transformation between the PAM50_t2s and the fMRI scan. We don't want to
 #       put too many iterations because this registration is very sensitive to the artifacts (drop out) in the image.
 #       Also, we want a 3D transformation (not 2D) because we need the through-z regularization.
-sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz -d fmri_moco_mean.nii.gz -dseg t2_seg_reg.nii.gz -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -owarp warp_template2fmri.nii.gz -owarpinv warp_fmri2template.nii.gz -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" -d fmri_moco_mean.nii.gz -dseg t2_seg_reg.nii.gz -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -owarp warp_template2fmri.nii.gz -owarpinv warp_fmri2template.nii.gz -qc ~/qc_singleSubj
 # Check results in the QC report
 
-# NOTE: This section is in the process of being rewritten, due to: https://github.com/spinalcordtoolbox/spinalcordtoolbox/pull/4252
-# Please check back after the 2023 SCT Course for the updated set of instructions. 
-## Warp template with the spinal levels (-s 1)
-# sct_warp_template -d fmri_moco_mean.nii.gz -w warp_template2fmri.nii.gz -s 1 -a 0 -qc ~/qc_singleSubj
-## Check results
-#fsleyes --scene lightbox --hideCursor fmri_moco_mean.nii.gz -cm greyscale -dr 0 1000 label/spinal_levels/spinal_level_03 -cm red label/spinal_levels/spinal_level_04 -cm blue label/spinal_levels/spinal_level_05 -cm green label/spinal_levels/spinal_level_06 -cm yellow &
-
+# Warp template with the spinal levels (can be found at $SCT_DIR/data/PAM50/template/)
+sct_warp_template -d fmri_moco_mean.nii.gz -w warp_template2fmri.nii.gz -a 0 -qc ~/qc_singleSubj
 
 
 # Other features
