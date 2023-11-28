@@ -38,22 +38,10 @@ fi
 
 # Go to T2 contrast
 cd data/t2
-# Spinal cord segmentation
-sct_propseg -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
+# Spinal cord segmentation (
+sct_deepseg_sc -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
 # To check the QC report, use your web browser to open the file qc_singleSubj/qc/index.html, which has been created in
 # your home directory
-
-# Go to T1 contrast
-cd ../t1
-# Spinal cord segmentation
-sct_propseg -i t1.nii.gz -c t1 -qc ~/qc_singleSubj
-# Check QC report: Go to your browser and do "refresh". Notice that the segmentation is "leaking".
-# Try another algorithm based on deep-learning
-sct_deepseg_sc -i t1.nii.gz -c t1 -ofolder deepseg -qc ~/qc_singleSubj
-# Check QC report: Go to your browser and do "refresh". Notice that the leakage is fixed.
-# Optional: Check results in FSLeyes. In red: PropSeg, in green: DeepSeg. Tips: use the right arrow key to switch
-#           overlay on/off.
-fsleyes t1.nii.gz -cm greyscale t1_seg.nii.gz -cm red -a 70.0 deepseg/t1_seg.nii.gz -cm green -a 70.0 &
 
 
 
@@ -379,8 +367,11 @@ sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz -d 
 # Other features
 # ======================================================================================================================
 
-# Smooth spinal cord along centerline (extracted from the segmentation)
 cd ../t1
+# Segment T1-weighted image (to be used in later steps)
+sct_deepseg_sc -i t2.nii.gz -c t1
+
+# Smooth spinal cord along centerline (extracted from the segmentation)
 sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
 # Tips: use flag "-sigma" to specify smoothing kernel size (in mm)
 
