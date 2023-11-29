@@ -1,5 +1,4 @@
 data_spinalcord-segmentation,single_subject/data/t2/t2.nii.gz
-data_spinalcord-segmentation,single_subject/data/t1/t1.nii.gz
 data_vertebral-labeling,single_subject/data/t2/t2.nii.gz
 data_vertebral-labeling,single_subject/data/t2/t2_seg.nii.gz
 data_shape-metric-computation,single_subject/data/t2/t2_seg.nii.gz
