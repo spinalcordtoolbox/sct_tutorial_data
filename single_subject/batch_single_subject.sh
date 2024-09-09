@@ -114,6 +114,22 @@ sct_compute_compression -i t2_compressed_seg.nii.gz -vertfile t2_compressed_seg_
 
 
 
+# Lesion analysis
+# ======================================================================================================================
+cd ../t2_lesion
+# Segment the spinal cord and intramedullary lesion using the SCIsegV2 model
+# Note: t2.nii.gz contains a fake lesion for the purpose of this tutorial
+sct_deepseg -i t2.nii.gz -task seg_sc_lesion_t2w_sci -qc ~/qc_singleSubj
+# Note: Two files are output:
+# - t2_sc_seg.nii.gz: the spinal cord segmentation
+# - t2_lesion_seg.nii.gz: the lesion segmentation
+
+# Check results using Fsleyes
+fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.nii.gz -cm blue-lightblue -a 70.0 &
+
+# Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
+sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
+
 # Registering T2 data to the PAM50 template
 # ======================================================================================================================
 cd ../t2
