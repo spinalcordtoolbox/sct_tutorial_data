@@ -130,6 +130,19 @@ fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.n
 # Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
 sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
 
+
+
+# Rootlets segmentation
+# ======================================================================================================================
+cd ../t2
+# Segment the spinal nerve rootlets
+sct_deepseg -i t2.nii.gz -task seg_spinal_rootlets_t2w -qc ~/qc_singleSubj
+
+# Check results using Fsleyes
+fsleyes t2.nii.gz -cm greyscale t2_seg.nii.gz -cm subcortical -a 70.0 &
+
+
+
 # Registering T2 data to the PAM50 template
 # ======================================================================================================================
 cd ../t2
