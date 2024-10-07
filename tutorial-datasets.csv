@@ -41,6 +41,7 @@ data_processing-fmri-data,single_subject/data/fmri/fmri.nii.gz
 data_processing-fmri-data,single_subject/data/t2/t2.nii.gz
 data_processing-fmri-data,single_subject/data/t2s/warp_template2t2s.nii.gz
 data_processing-fmri-data,single_subject/data/t2s/warp_t2s2template.nii.gz
+data_rootlets-segmentation,single_subject/data/t2/t2.nii.gz
 data_spinalcord-smoothing,single_subject/data/t1/t1.nii.gz
 data_spinalcord-smoothing,single_subject/data/t1/t1_seg.nii.gz
 data_visualizing-misaligned-cords,single_subject/data/t1/t1.nii.gz
