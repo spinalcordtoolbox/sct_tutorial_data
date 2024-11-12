@@ -124,7 +124,7 @@ sct_deepseg -i t2.nii.gz -task seg_sc_lesion_t2w_sci -qc ~/qc_singleSubj
 # - t2_sc_seg.nii.gz: the spinal cord segmentation
 # - t2_lesion_seg.nii.gz: the lesion segmentation
 
-# Check results using Fsleyes
+# Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.nii.gz -cm blue-lightblue -a 70.0 &
 
 # Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
@@ -138,7 +138,7 @@ cd ../t2
 # Segment the spinal nerve rootlets
 sct_deepseg -i t2.nii.gz -task seg_spinal_rootlets_t2w -qc ~/qc_singleSubj
 
-# Check results using Fsleyes
+# Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_seg.nii.gz -cm subcortical -a 70.0 &
 
 
@@ -156,7 +156,7 @@ sct_warp_template -d t2.nii.gz -w warp_template2anat.nii.gz -a 0 -qc ~/qc_single
 # Note: A folder label/template/ is created, which contains template objects in the space of the subject. The file
 #       info_label.txt lists all template files.
 
-# Check results using Fsleyes.
+# Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
 
 
@@ -189,7 +189,7 @@ sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2.nii.gz -ise
 
 # Warp template
 sct_warp_template -d mt1.nii.gz -w warp_template2mt.nii.gz -a 1 -qc ~/qc_singleSubj
-# Check results using Fsleyes.
+# Check results using FSLeyes
 fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm greyscale -dr 0 4000 -a 100.0 label/template/PAM50_gm.nii.gz -cm red-yellow -dr 0.4 1 -a 50.0 label/template/PAM50_wm.nii.gz -cm blue-lightblue -dr 0.4 1 -a 50.0 &
 
 
@@ -200,7 +200,7 @@ fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm gre
 # Register mt0->mt1 using z-regularized slicewise translations (algo=slicereg)
 # Note: Segmentation and mask can be re-used from "MT registration" section
 sct_register_multimodal -i mt0.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz -param step=1,type=im,algo=slicereg,metric=CC -x spline -qc ~/qc_singleSubj
-# Check results using Fsleyes.
+# Check results using FSLeyes
 fsleyes mt1.nii.gz mt0_reg.nii.gz &
 # Compute MTR
 sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
