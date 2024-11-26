@@ -86,6 +86,10 @@ sct_detect_pmj -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
 # Check the QC to make sure PMJ was properly detected, then compute CSA using the distance from the PMJ:
 sct_process_segmentation -i t2_seg.nii.gz -pmj t2_pmj.nii.gz -pmj-distance 64 -pmj-extent 30 -o csa_pmj.csv -qc ~/qc_singleSubj -qc-image t2.nii.gz
 
+# The above commands will output the metrics in the subject space (with the original image's slice numbers)
+# However, you can get the corresponding slice number in the PAM50 space by using the flag `-normalize-PAM50 1`
+sct_process_segmentation -i t2_seg.nii.gz -vertfile t2_seg_labeled.nii.gz -perslice 1 -normalize-PAM50 1 -o csa_PAM50.csv
+
 
 
 # Computing normalized shape metrics for compressed data
