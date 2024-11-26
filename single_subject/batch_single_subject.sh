@@ -409,5 +409,30 @@ sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
 sct_flatten_sagittal -i t1.nii.gz -s t1_seg.nii.gz
 # Note: Use for visualization purposes only
 
+
+
+# New features (SCT v6.5, December 2024)
+# ======================================================================================================================
+
+# Lesion analysis
+cd ../t2_lesion
+# Segment the spinal cord and intramedullary lesion using the SCIsegV2 model
+# Note: t2.nii.gz contains a fake lesion for the purpose of this tutorial
+sct_deepseg -i t2.nii.gz -task seg_sc_lesion_t2w_sci -qc ~/qc_singleSubj
+# Note: Two files are output:
+# - t2_sc_seg.nii.gz: the spinal cord segmentation
+# - t2_lesion_seg.nii.gz: the lesion segmentation
+# Check results using FSLeyes
+fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.nii.gz -cm blue-lightblue -a 70.0 &
+# Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
+sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
+
+# Rootlets segmentation
+cd ../t2
+# Segment the spinal nerve rootlets
+sct_deepseg -i t2.nii.gz -task seg_spinal_rootlets_t2w -qc ~/qc_singleSubj
+# Check results using FSLeyes
+fsleyes t2.nii.gz -cm greyscale t2_seg.nii.gz -cm subcortical -a 70.0 &
+
 # Return to parent directory
 cd ..
