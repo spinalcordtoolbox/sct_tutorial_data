@@ -38,10 +38,17 @@ fi
 
 # Go to T2 contrast
 cd data/t2
-# Spinal cord segmentation (
-sct_deepseg_sc -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
+# Spinal cord segmentation (using new 2024 method)
+sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -qc ~/qc_singleSubj
+# You can also choose your own output filename using the “-o” argument
+# sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -o t2_seg_test.nii.gz
+
 # To check the QC report, use your web browser to open the file qc_singleSubj/qc/index.html, which has been created in
 # your home directory
+
+# View the rest of the `sct_deepseg` tasks
+sct_deepseg -h
+# See also: https://spinalcordtoolbox.com/stable/user_section/command-line/sct_deepseg.html
 
 
 
