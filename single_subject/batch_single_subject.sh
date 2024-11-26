@@ -410,7 +410,7 @@ sct_flatten_sagittal -i t1.nii.gz -s t1_seg.nii.gz
 # New features (SCT v6.5, December 2024)
 # ======================================================================================================================
 
-# Lesion analysis
+# Lesion analysis for SCI and MS lesions
 cd ../t2_lesion
 # Segment the spinal cord and intramedullary lesion using the SCIsegV2 model
 # Note: t2.nii.gz contains a fake lesion for the purpose of this tutorial
@@ -424,6 +424,11 @@ fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.n
 sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
 # Lesion analysis using PAM50 (the -f flag is used to specify the folder containing the atlas/template)
 sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label_T2w -qc ~/qc_singleSubj
+
+# Note: We also have a contrast-agnostic segmentation command for MS lesions, too:
+sct_deepseg -i t2.nii.gz -task seg_ms_lesion -qc ~/qc_singleSubj
+# As well as a segmentation command tailored to MP2RAGE MS lesions
+sct_deepseg -i t2.nii.gz -task seg_ms_lesion_mp2rage -qc ~/qc_singleSubj
 
 # Rootlets segmentation
 cd ../t2
