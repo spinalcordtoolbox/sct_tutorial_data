@@ -422,6 +422,8 @@ sct_deepseg -i t2.nii.gz -task seg_sc_lesion_t2w_sci -qc ~/qc_singleSubj
 fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.nii.gz -cm blue-lightblue -a 70.0 &
 # Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
 sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
+# Lesion analysis using PAM50 (the -f flag is used to specify the folder containing the atlas/template)
+sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label_T2w -qc ~/qc_singleSubj
 
 # Rootlets segmentation
 cd ../t2
