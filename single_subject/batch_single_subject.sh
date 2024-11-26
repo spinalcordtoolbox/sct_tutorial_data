@@ -231,27 +231,6 @@ sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 
 
 
-# Contrast-agnostic registration
-# ======================================================================================================================
-
-# 1. T2w preprocessing (cropping around spinal cord)
-cd ../t2
-sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -qc ~/qc_singleSubj
-sct_create_mask -i t2.nii.gz -p centerline,t2_seg.nii.gz -size 35mm -f cylinder -o mask_t2.nii.gz
-sct_crop_image -i t2.nii.gz -m mask_t2.nii.gz
-
-# 2. T1w preprocessing (cropping around spinal cord)
-cd ../t1
-sct_deepseg -task seg_sc_contrast_agnostic -i t1.nii.gz -qc ~/qc_singleSubj
-sct_create_mask -i t1.nii.gz -p centerline,t1_seg.nii.gz -size 35mm -f cylinder -o mask_t1.nii.gz
-sct_crop_image -i t1.nii.gz -m mask_t1.nii.gz
-
-# 3. Perform registration
-# NB: `-dseg` is not necessary for registration, but is provided for the `-qc` reporting to help with spinal cord visualization
-sct_register_multimodal -i t1_crop.nii.gz -d ../t2/t2_crop.nii.gz -param step=1,type=im,algo=dl -qc ~/qc_singleSubj -dseg ../t2/t2_seg.nii.gz
-
-
-
 # Registering lumbar data to the PAM50 template
 # ======================================================================================================================
 cd ../t2_lumbar
