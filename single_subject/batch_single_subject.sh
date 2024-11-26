@@ -92,7 +92,7 @@ sct_process_segmentation -i t2_seg.nii.gz -vertfile t2_seg_labeled.nii.gz -persl
 
 
 
-# Computing normalized shape metrics for compressed data
+# Quantifying spinal cord compression (MSCC) and normalize against database of healthy controls
 # ======================================================================================================================
 cd ../t2_compression
 # Segment the spinal cord of the compressed spine
