@@ -161,6 +161,18 @@ sct_qc -i t2.nii.gz -s t2_labels_vert.nii.gz -p sct_label_utils -qc ~/qc_singleS
 sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -l t2_labels_vert.nii.gz -c t2 -qc ~/qc_singleSubj
 # Note: By default the PAM50 template is selected. You can also select your own template using flag -t.
 
+# Register t2->template with modified parameters (advanced usage of `-param`)
+sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -l t2_labels_vert.nii.gz -qc ~/qc_singleSubj -ofolder advanced_param -c t2 -param step=1,type=seg,algo=rigid:step=2,type=seg,metric=CC,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,metric=CC,algo=syn,slicewise=1,iter=2
+
+# Register t2->template with large FOV (e.g. C2-L1) using `-ldisc` option
+# sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -ldisc t2_seg_labeled_discs.nii.gz -c t2
+
+# Register t2->template in compressed cord (example command)
+# In case of highly compressed cord, the algo columnwise can be used, which allows for more deformation than bsplinesyn.
+# NB: In the example below, the registration is done in the subject space (no straightening) using a single label point at disc C3-C4 (<LABEL_DISC>).
+# sct_register_to_template -i <IMAGE> -s <SEGMENTATION> -ldisc <LABEL_DISC> -ref subject -param step=1,type=seg,
+# algo=centermassrot:step=2,type=seg,algo=columnwise
+
 # Warp template objects (T2, cord segmentation, vertebral levels, etc.). Here we use -a 0 because we don’t need the
 # white matter atlas at this point.
 sct_warp_template -d t2.nii.gz -w warp_template2anat.nii.gz -a 0 -qc ~/qc_singleSubj
