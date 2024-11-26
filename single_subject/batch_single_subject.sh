@@ -437,6 +437,11 @@ sct_deepseg -i t2.nii.gz -task seg_spinal_rootlets_t2w -qc ~/qc_singleSubj
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_seg.nii.gz -cm subcortical -a 70.0 &
 
+# Canal segmentation
+sct_deepseg -i t2.nii.gz -task canal_t2w -qc ~/qc_singleSubj
+# Check results using FSLeyes
+fsleyes t2.nii.gz -cm greyscale t2_canal_seg_seg.nii.gz -cm red -a 70.0 &
+
 # Full spinal segmentation (Vertebrae, Intervertebral discs, Spinal cord and Spinal canal)
 # Segment using totalspineseg
 sct_deepseg -i t2.nii.gz -task totalspineseg -qc ~/qc_singleSubj
