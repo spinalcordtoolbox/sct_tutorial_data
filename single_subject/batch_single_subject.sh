@@ -96,7 +96,7 @@ sct_process_segmentation -i t2_seg.nii.gz -vertfile t2_seg_labeled.nii.gz -persl
 # ======================================================================================================================
 cd ../t2_compression
 # Segment the spinal cord of the compressed spine
-sct_deepseg_sc -i t2_compressed.nii.gz -c t2 -qc ~/qc_singleSubj
+sct_deepseg -task seg_sc_contrast_agnostic -i t2_compressed.nii.gz -qc ~/qc_singleSubj
 # Label the vertebrae using the compressed spinal cord segmentation
 sct_label_vertebrae -i t2_compressed.nii.gz -s t2_compressed_seg.nii.gz -c t2 -qc ~/qc_singleSubj
 # Generate labels for each spinal cord compression site.
@@ -190,7 +190,7 @@ fsleyes t2.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm grey
 # Go to mt folder
 cd ../mt
 # Segment cord
-sct_deepseg_sc -i mt1.nii.gz -c t2 -qc ~/qc_singleSubj
+sct_deepseg -task seg_sc_contrast_agnostic -i mt1.nii.gz -qc ~/qc_singleSubj
 
 # Create a close mask around the spinal cord for more accurate registration (i.e. does not account for surrounding
 # tissue which could move independently from the cord)
@@ -236,13 +236,13 @@ sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 
 # 1. T2w preprocessing (cropping around spinal cord)
 cd ../t2
-sct_deepseg_sc -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
+sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -qc ~/qc_singleSubj
 sct_create_mask -i t2.nii.gz -p centerline,t2_seg.nii.gz -size 35mm -f cylinder -o mask_t2.nii.gz
 sct_crop_image -i t2.nii.gz -m mask_t2.nii.gz
 
 # 2. T1w preprocessing (cropping around spinal cord)
 cd ../t1
-sct_deepseg_sc -i t1.nii.gz -c t1 -qc ~/qc_singleSubj
+sct_deepseg -task seg_sc_contrast_agnostic -i t1.nii.gz -qc ~/qc_singleSubj
 sct_create_mask -i t1.nii.gz -p centerline,t1_seg.nii.gz -size 35mm -f cylinder -o mask_t1.nii.gz
 sct_crop_image -i t1.nii.gz -m mask_t1.nii.gz
 
@@ -285,7 +285,7 @@ cd ../t2s
 # Segment gray matter (check QC report afterwards)
 sct_deepseg_gm -i t2s.nii.gz -qc ~/qc_singleSubj
 # Spinal cord segmentation
-sct_deepseg_sc -i t2s.nii.gz -c t2s -qc ~/qc_singleSubj
+sct_deepseg -task seg_sc_contrast_agnostic -i t2s.nii.gz -qc ~/qc_singleSubj
 # Subtract GM segmentation from cord segmentation to obtain WM segmentation
 sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
 
@@ -353,7 +353,7 @@ cd ../dmri
 sct_dmri_separate_b0_and_dwi -i dmri.nii.gz -bvec bvecs.txt 
 # Segment SC on mean dMRI data
 # Note: This segmentation does not need to be accurate-- it is only used to create a mask around the cord
-sct_deepseg_sc -i dmri_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
+sct_deepseg -task seg_sc_contrast_agnostic -i dmri_dwi_mean.nii.gz -qc ~/qc_singleSubj
 # Create mask (for subsequent cropping)
 sct_create_mask -i dmri_dwi_mean.nii.gz -p centerline,dmri_dwi_mean_seg.nii.gz -f cylinder -size 35mm
 
@@ -362,7 +362,7 @@ sct_dmri_moco -i dmri.nii.gz -m mask_dmri_dwi_mean.nii.gz -bvec bvecs.txt -qc ~/
 # Check results in the QC report
 
 # Segment SC on motion-corrected mean dwi data (check results in the QC report)
-sct_deepseg_sc -i dmri_moco_dwi_mean.nii.gz -c dwi -qc ~/qc_singleSubj
+sct_deepseg -task seg_sc_contrast_agnostic -i dmri_moco_dwi_mean.nii.gz -qc ~/qc_singleSubj
 
 # Register template->dwi via t2s to account for GM segmentation
 # Tips: Here we use the PAM50 contrast t1, which is closer to the dwi contrast (although we are not using type=im in
@@ -415,7 +415,7 @@ sct_warp_template -d fmri_moco_mean.nii.gz -w warp_template2fmri.nii.gz -a 0 -qc
 
 cd ../t1
 # Segment T1-weighted image (to be used in later steps)
-sct_deepseg_sc -i t1.nii.gz -c t1
+sct_deepseg -task seg_sc_contrast_agnostic -i t1.nii.gz
 
 # Smooth spinal cord along centerline (extracted from the segmentation)
 sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
