@@ -80,11 +80,11 @@ segment_if_does_not_exist() {
   if [[ -e "${FILESEGMANUAL}" ]]; then
     echo "Found! Using manual segmentation."
     rsync -avzh "${FILESEGMANUAL}" "${FILESEG}".nii.gz
-    sct_qc -i "${file}".nii.gz -s "${FILESEG}".nii.gz -p sct_deepseg_sc -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
+    sct_qc -i "${file}".nii.gz -s "${FILESEG}".nii.gz -p sct_deepseg -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
   else
     echo "Not found. Proceeding with automatic segmentation."
     # Segment spinal cord
-    sct_deepseg_sc -i "${file}".nii.gz -c "${contrast}" -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
+    sct_deepseg -task seg_sc_contrast_agnostic -i "${file}".nii.gz -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
   fi
 }
 
