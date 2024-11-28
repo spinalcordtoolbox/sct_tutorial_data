@@ -36,10 +36,11 @@ fi
 # Spinal cord segmentation
 # ======================================================================================================================
 
-# Go to T2 contrast
+# Go to T2 folder
 cd data/t2
-# Spinal cord segmentation (using new 2024 method)
+# Spinal cord segmentation (using the new 2024 contrast-agnostic method)
 sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -qc ~/qc_singleSubj
+# The default output is t2_seg.nii.gz
 # You can also choose your own output filename using the “-o” argument
 # sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -o t2_seg_test.nii.gz
 
@@ -92,7 +93,7 @@ sct_process_segmentation -i t2_seg.nii.gz -vertfile t2_seg_labeled.nii.gz -persl
 
 
 
-# Quantifying spinal cord compression (MSCC) and normalize against database of healthy controls
+# Quantifying spinal cord compression using maximum spinal cord compression (MSCC) and normalizing with database of healthy controls
 # ======================================================================================================================
 cd ../t2_compression
 # Segment the spinal cord of the compressed spine
