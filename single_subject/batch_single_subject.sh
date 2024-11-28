@@ -438,7 +438,7 @@ cd ../t2
 # Segment the spinal nerve rootlets
 sct_deepseg -i t2.nii.gz -task seg_spinal_rootlets_t2w -qc ~/qc_singleSubj
 # Check results using FSLeyes
-fsleyes t2.nii.gz -cm greyscale t2_seg.nii.gz -cm subcortical -a 70.0 &
+fsleyes t2.nii.gz -cm greyscale t2_rootlets.nii.gz -cm subcortical -a 70.0 &
 
 # Canal segmentation
 sct_deepseg -i t2.nii.gz -task canal_t2w -qc ~/qc_singleSubj
