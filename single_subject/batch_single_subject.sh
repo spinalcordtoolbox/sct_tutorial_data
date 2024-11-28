@@ -336,7 +336,7 @@ sct_dmri_separate_b0_and_dwi -i dmri.nii.gz -bvec bvecs.txt
 # Note: This segmentation does not need to be accurate-- it is only used to create a mask around the cord
 sct_deepseg -task seg_sc_contrast_agnostic -i dmri_dwi_mean.nii.gz -qc ~/qc_singleSubj
 # Create mask (for subsequent cropping)
-sct_create_mask -i dmri_dwi_mean.nii.gz -p centerline,dmri_dwi_mean_seg.nii.gz -f cylinder -size 35mm
+sct_create_mask -i dmri_dwi_mean.nii.gz -p centerline,dmri_dwi_mean_seg.nii.gz -size 35mm
 
 # Motion correction (moco)
 sct_dmri_moco -i dmri.nii.gz -m mask_dmri_dwi_mean.nii.gz -bvec bvecs.txt -qc ~/qc_singleSubj -qc-seg dmri_dwi_mean_seg.nii.gz
