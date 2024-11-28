@@ -402,6 +402,9 @@ sct_deepseg -task seg_sc_contrast_agnostic -i t1.nii.gz
 sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
 # Tips: use flag "-sigma" to specify smoothing kernel size (in mm)
 
+# Second-pass segmentation using the smoothed anatomical image
+sct_deepseg_sc -i t1_smooth.nii.gz -c t1 -qc ~/qc_singleSubj
+
 # Align the spinal cord in the right-left direction using slice-wise translations.
 sct_flatten_sagittal -i t1.nii.gz -s t1_seg.nii.gz
 # Note: Use for visualization purposes only
