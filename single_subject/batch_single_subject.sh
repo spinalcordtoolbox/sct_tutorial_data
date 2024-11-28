@@ -77,7 +77,7 @@ sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile t2_seg_labeled.nii
 # Aggregate CSA value per level
 sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -vertfile t2_seg_labeled.nii.gz -perlevel 1 -o csa_perlevel.csv
 # Aggregate CSA value per slices
-sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -perslice 1 -o csa_perslice.csv
+sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -vertfile t2_seg_labeled.nii.gz -perslice 1 -o csa_perslice.csv
 
 # A drawback of vertebral level-based CSA is that it doesn’t consider neck flexion and extension.
 # To overcome this limitation, the CSA can instead be computed using the distance to a reference point.
