@@ -367,7 +367,7 @@ sct_warp_template -d fmri_moco_mean.nii.gz -w warp_template2fmri.nii.gz -a 0 -qc
 
 cd ../t1
 # Segment T1-weighted image (to be used in later steps)
-sct_deepseg -task seg_sc_contrast_agnostic -i t1.nii.gz
+sct_deepseg -task seg_sc_contrast_agnostic -i t1.nii.gz -qc ~/qc_singleSubj/
 
 # Smooth spinal cord along centerline (extracted from the segmentation)
 sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
