@@ -71,7 +71,6 @@ segment_if_does_not_exist() {
   #  This allows you to add manual segmentations on a subject-by-subject basis without disrupting the pipeline.
   ###
   local file="${1}"
-  local contrast="${2}"
   # Update global variable with segmentation file name
   FILESEG="${file}"_seg
   FILESEGMANUAL="${PATH_DATA}"/derivatives/labels/"${SUBJECT}"/anat/"${FILESEG}".nii.gz
@@ -111,8 +110,8 @@ rsync -avzh "${PATH_DATA}"/"${SUBJECT}" .
 # ======================================================================================================================
 cd "${SUBJECT}"/anat/
 file_t2="${SUBJECT}"_T2w
-# Segment spinal cord (only if it does not exist)
-segment_if_does_not_exist "${file_t2}" "t2"
+# Segment spinal cord (only if it does not exist) using contrast-agnostic model
+segment_if_does_not_exist "${file_t2}"
 file_t2_seg="${FILESEG}"
 # Create labels in the cord at C2 and C5 mid-vertebral levels (only if it does not exist)
 label_if_does_not_exist "${file_t2}" "${file_t2_seg}"
@@ -132,8 +131,8 @@ sct_process_segmentation -i "${file_t2_seg}".nii.gz -vert 2:3 -vertfile label_T2
 # ======================================================================================================================
 file_mt1="${SUBJECT}"_acq-MTon_MTS
 file_mt0="${SUBJECT}"_acq-MToff_MTS
-# Segment spinal cord
-segment_if_does_not_exist "${file_mt1}" "t2s"
+# Segment spinal cord using contrast-agnostic model
+segment_if_does_not_exist "${file_mt1}"
 file_mt1_seg="${FILESEG}"
 # Create mask
 sct_create_mask -i "${file_mt1}".nii.gz -p centerline,"${file_mt1_seg}".nii.gz -size 45mm
