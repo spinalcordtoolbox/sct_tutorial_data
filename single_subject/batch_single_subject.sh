@@ -69,7 +69,7 @@ sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -qc ~/qc_singleSubj
 
 
 
-# Computing shape metrics
+# Shape-based analysis
 # ======================================================================================================================
 
 # Compute cross-sectional area (CSA) of spinal cord and average it across levels C3 and C4
@@ -115,7 +115,7 @@ sct_compute_compression -i t2_compressed_seg.nii.gz -vertfile t2_compressed_seg_
 
 
 
-# Registering T2 data to the PAM50 template
+# Registration to template
 # ======================================================================================================================
 cd ../t2
 
@@ -156,7 +156,7 @@ fsleyes t2.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm grey
 
 
 
-# Registering additional MT data to the PAM50 template
+# Registering additional contrasts (MT registration to T2 template)
 # ======================================================================================================================
 
 # Go to mt folder
@@ -189,7 +189,7 @@ fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm gre
 
 
 
-# Computing MTR using MT0/MT1 coregistration
+# Registering additional contrasts (MT0/MT1 coregistration to compute MTR)
 # ======================================================================================================================
 
 # Register mt0->mt1 using z-regularized slicewise translations (algo=slicereg)
@@ -203,7 +203,7 @@ sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 
 
 
-# Registering lumbar data to the PAM50 template
+# Registering additional contrasts (T2 lumbar data)
 # ======================================================================================================================
 cd ../t2_lumbar
 
@@ -228,7 +228,7 @@ sct_register_to_template -i t2_lumbar.nii.gz \
 
 
 
-# Gray/white matter: Segmentation
+# Gray matter segmentation (GM/WM seg)
 # ======================================================================================================================
 
 # Go to T2*-weighted data, which has good GM/WM contrast and high in-plane resolution
@@ -242,7 +242,7 @@ sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
 
 
 
-# Gray/white matter: Computing metrics using binary segmentation masks
+# Gray matter segmentation (Shape-based analysis and metric extraction)
 # ======================================================================================================================
 
 # Compute cross-sectional area (CSA) of the gray and white matter for all slices in the volume.
@@ -261,7 +261,7 @@ sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_
 
 
 
-# Gray/white matter: Improving registration results using binary segmentation masks
+# Gray matter segmentation (Improving registration results using binary segmentation masks)
 # ======================================================================================================================
 
 # Register template->t2s (using warping field generated from template<->t2 registration)
