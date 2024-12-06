@@ -234,7 +234,10 @@ sct_deepseg_gm -i t2s.nii.gz -qc ~/qc_singleSubj
 # Spinal cord segmentation
 sct_deepseg -task seg_sc_contrast_agnostic -i t2s.nii.gz -qc ~/qc_singleSubj
 # Subtract GM segmentation from cord segmentation to obtain WM segmentation
-sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
+# Note that we use the flag -thr 0 in case some voxels in the GM segmentation are *not* included in the cord
+# segmentation. That would results in voxels in the WM segmentation having the value “-1”, which would cause issues
+# with the registration. 
+sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -thr 0 -o t2s_wmseg.nii.gz
 
 
 
