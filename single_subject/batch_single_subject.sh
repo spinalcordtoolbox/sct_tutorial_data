@@ -349,6 +349,13 @@ sct_create_mask -i fmri.nii.gz -p centerline,t2_seg_reg.nii.gz -size 35mm -f cyl
 # Motion correction (using mask)
 sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz -qc ~/qc_singleSubj -qc-seg t2_seg_reg.nii.gz
 
+# Cord segmentation on motion-corrected averaged time series
+sct_deepseg -i fmri_moco_mean.nii.gz -task seg_sc_contrast_agnostic -qc ~/qc_singleSubj/
+# TSNR before/after motion correction with QC report
+sct_fmri_compute_tsnr -i fmri.nii.gz
+sct_fmri_compute_tsnr -i fmri_moco.nii.gz
+sct_qc -i fmri_tsnr.nii.gz -d fmri_moco_tsnr.nii.gz -s fmri_moco_mean_seg.nii.gz -p sct_fmri_compute_tsnr -qc ~/qc_singleSubj/
+
 # Register the template to the fMRI scan.
 # Note: here we don't rely on the segmentation because it is difficult to obtain one automatically. Instead, we rely on
 #       ANTs_SyN superpower to find a suitable transformation between the PAM50_t2 and the fMRI scan. We don't want to
