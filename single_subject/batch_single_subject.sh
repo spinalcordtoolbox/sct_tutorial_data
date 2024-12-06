@@ -401,17 +401,18 @@ sct_deepseg -i t2.nii.gz -task seg_sc_lesion_t2w_sci -qc ~/qc_singleSubj
 # - t2_lesion_seg.nii.gz: the lesion segmentation
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.nii.gz -cm blue-lightblue -a 70.0 &
-# Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
-sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
-
-# Lesion analysis using PAM50 (the -f flag is used to specify the folder containing the atlas/template)
-# Note: You must go through the "Register to Template" steps (labeling, registration) first
-# sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label -qc ~/qc_singleSubj
 
 # Note: We also have a contrast-agnostic segmentation command for MS lesions, too:
 sct_deepseg -i t2.nii.gz -task seg_ms_lesion -qc ~/qc_singleSubj
 # As well as a segmentation command tailored to MP2RAGE MS lesions
-sct_deepseg -i t2.nii.gz -task seg_ms_lesion_mp2rage -qc ~/qc_singleSubj
+# sct_deepseg -i t2.nii.gz -task seg_ms_lesion_mp2rage -qc ~/qc_singleSubj
+
+# Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
+sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
+# Lesion analysis using PAM50 (the -f flag is used to specify the folder containing the atlas/template)
+# Note: You must go through the "Register to Template" steps (labeling, registration) first
+#       This is because `sct_warp_template` is required to generate the `label` folder used for `-f`
+# sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label -qc ~/qc_singleSubj
 
 # Rootlets segmentation
 cd ../t2
