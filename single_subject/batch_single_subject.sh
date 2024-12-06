@@ -315,12 +315,12 @@ sct_dmri_moco -i dmri.nii.gz -m mask_dmri_dwi_mean.nii.gz -bvec bvecs.txt -qc ~/
 # Segment SC on motion-corrected mean dwi data (check results in the QC report)
 sct_deepseg -task seg_sc_contrast_agnostic -i dmri_moco_dwi_mean.nii.gz -qc ~/qc_singleSubj
 
-# Register template->dwi via t2s to account for GM segmentation
+# Register template->dwi via t2 to account for cord shape (which is better defined in T2 contrast)
 # Tips: Here we use the PAM50 contrast t1, which is closer to the dwi contrast (although we are not using type=im in
 #       -param, so it will not make a difference here)
 # Note: the flag “-initwarpinv" provides a transformation dmri->template, in case you would like to bring all your DTI
 #       metrics in the PAM50 space (e.g. group averaging of FA maps)
-sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t1.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_cord.nii.gz -d dmri_moco_dwi_mean.nii.gz -dseg dmri_moco_dwi_mean_seg.nii.gz -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -owarp warp_template2dmri.nii.gz -owarpinv warp_dmri2template.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t1.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_cord.nii.gz -d dmri_moco_dwi_mean.nii.gz -dseg dmri_moco_dwi_mean_seg.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2dmri.nii.gz -owarpinv warp_dmri2template.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -qc ~/qc_singleSubj
 # Warp template (so 'label/atlas' can be used to extract metrics)
 sct_warp_template -d dmri_moco_dwi_mean.nii.gz -w warp_template2dmri.nii.gz -qc ~/qc_singleSubj
 # Check results in the QC report
@@ -351,10 +351,10 @@ sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz -qc ~/qc_singleSubj -qc-seg t2_
 
 # Register the template to the fMRI scan.
 # Note: here we don't rely on the segmentation because it is difficult to obtain one automatically. Instead, we rely on
-#       ANTs_SyN superpower to find a suitable transformation between the PAM50_t2s and the fMRI scan. We don't want to
+#       ANTs_SyN superpower to find a suitable transformation between the PAM50_t2 and the fMRI scan. We don't want to
 #       put too many iterations because this registration is very sensitive to the artifacts (drop out) in the image.
 #       Also, we want a 3D transformation (not 2D) because we need the through-z regularization.
-sct_register_multimodal -i "${SCT_DIR}/data/PAM50/template/PAM50_t2s.nii.gz" -d fmri_moco_mean.nii.gz -dseg t2_seg_reg.nii.gz -param step=1,type=im,algo=syn,metric=CC,iter=5,slicewise=0 -initwarp ../t2s/warp_template2t2s.nii.gz -initwarpinv ../t2s/warp_t2s2template.nii.gz -owarp warp_template2fmri.nii.gz -owarpinv warp_fmri2template.nii.gz -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_cord.nii.gz -d fmri_moco_mean.nii.gz -dseg fmri_moco_mean_seg.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,algo=syn,metric=CC,iter=3,slicewise=1 -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2fmri.nii.gz -owarpinv warp_fmri2template.nii.gz -qc ~/qc_singleSubj
 # Check results in the QC report
 
 # Warp template with the spinal levels (can be found at $SCT_DIR/data/PAM50/template/)
