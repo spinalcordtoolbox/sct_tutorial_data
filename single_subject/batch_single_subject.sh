@@ -42,7 +42,7 @@ cd data/t2
 sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -qc ~/qc_singleSubj
 # The default output is t2_seg.nii.gz
 # You can also choose your own output filename using the “-o” argument
-# sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -o t2_seg_test.nii.gz
+sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -o test/t2_seg_2.nii.gz
 
 # To check the QC report, use your web browser to open the file qc_singleSubj/qc/index.html, which has been created in
 # your home directory
