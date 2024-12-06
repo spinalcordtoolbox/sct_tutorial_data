@@ -414,14 +414,12 @@ sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSu
 #       This is because `sct_warp_template` is required to generate the `label` folder used for `-f`
 # sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label -qc ~/qc_singleSubj
 
-# Rootlets segmentation
-cd ../t2
-# Segment the spinal nerve rootlets
-sct_deepseg -i t2.nii.gz -task seg_spinal_rootlets_t2w -qc ~/qc_singleSubj
-# Check results using FSLeyes
-fsleyes t2.nii.gz -cm greyscale t2_rootlets.nii.gz -cm subcortical -a 70.0 &
+# Segment the spinal cord on gradient echo EPI data
+cd ../fmri/
+sct_deepseg -i fmri_moco_mean.nii.gz -task seg_sc_epi -qc ~/qc_singleSubj
 
 # Canal segmentation
+cd ../t2
 sct_deepseg -i t2.nii.gz -task canal_t2w -qc ~/qc_singleSubj
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_canal_seg_seg.nii.gz -cm red -a 70.0 &
@@ -431,5 +429,11 @@ fsleyes t2.nii.gz -cm greyscale t2_canal_seg_seg.nii.gz -cm red -a 70.0 &
 sct_deepseg -i t2.nii.gz -task totalspineseg -qc ~/qc_singleSubj
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_step1_canal.nii.gz -cm YlOrRd -a 70.0 t2_step1_cord.nii.gz -cm YlOrRd -a 70.0 t2_step1_levels.nii.gz -cm subcortical -a 70.0 t2_step1_output.nii.gz -cm subcortical -a 70.0 t2_step2_output.nii.gz -cm subcortical -a 70.0 &
+
+# Segment the spinal nerve rootlets
+sct_deepseg -i t2.nii.gz -task seg_spinal_rootlets_t2w -qc ~/qc_singleSubj
+# Check results using FSLeyes
+fsleyes t2.nii.gz -cm greyscale t2_rootlets.nii.gz -cm subcortical -a 70.0 &
+
 # Return to parent directory
 cd ..
