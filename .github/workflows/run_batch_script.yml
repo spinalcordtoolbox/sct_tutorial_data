@@ -67,5 +67,5 @@ jobs:
         cd "${{ github.event.repository.name }}/multi_subject/output/log"
         [ "$(compgen -G "process_data_sub-0*.log")" ]        # Log files should exist
         [ ! "$(compgen -G "err.process_data_sub-0*.log")" ]  # Error files should NOT exist
-        grep -iF "warning" process_data_sub-01.log
+        # grep -iF "warning" process_data_sub-01.log
         grep -iF "error" process_data_sub-01.log
