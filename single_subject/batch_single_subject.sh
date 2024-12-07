@@ -2,8 +2,15 @@
 #
 # Example of commands to process multi-parametric data of the spinal cord
 # For information about acquisition parameters, see: www.spinalcordmri.org/protocols
-# N.B. The parameters were chosen to suit SCT's sample tutorial data. With your data,
-# it is worthwhile to explore the various parameters and tweak them to your situation.
+#
+# Notes:
+#   - Many of the commands in this script are commented out (start with "# "). These commands won't be run by default,
+#     as many of them involve manual steps (e.g. via an interactive pop-up interface), or may involve data-specific
+#     configuration. Often these commands correspond to the "try at home" slides in the SCT Course slide deck,
+#     (denoted by a "red circle" in the top-right corner of the corresponding slide). Feel free to "uncomment" the
+#     commands by removing the "# " symbol at the start of the line, and experiment with them on your own data.
+#   - The parameters were chosen to suit SCT's sample tutorial data. With your data,
+#     it is worthwhile to explore the various parameters and tweak them to your situation.
 #
 # tested with Spinal Cord Toolbox (v6.5)
 
