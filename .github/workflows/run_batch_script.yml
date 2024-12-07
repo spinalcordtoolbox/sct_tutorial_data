@@ -78,10 +78,10 @@ jobs:
       if: always()
       run: |
         cd "${{ github.event.repository.name }}/multi_subject/output/log"
-        # grep -iF "warning" process_data_sub-01.log
+        # ! grep -iF "warning" process_data_sub-01.log
 
     - name: Check results (errors in log)
       if: always()
       run: |
         cd "${{ github.event.repository.name }}/multi_subject/output/log"
-        grep -iF "error" process_data_sub-01.log
+        ! grep -iF "error" process_data_sub-01.log
