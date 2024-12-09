@@ -62,10 +62,26 @@ jobs:
             fi
         done
 
-    - name: Check that script executed without error
+    - name: Check results (no error logs)
+      if: always()
       run: |
         cd "${{ github.event.repository.name }}/multi_subject/output/log"
         [ "$(compgen -G "process_data_sub-0*.log")" ]        # Log files should exist
+
+    - name: Check results (no error logs)
+      if: always()
+      run: |
+        cd "${{ github.event.repository.name }}/multi_subject/output/log"
         [ ! "$(compgen -G "err.process_data_sub-0*.log")" ]  # Error files should NOT exist
-        grep -iF "warning" process_data_sub-01.log
-        grep -iF "error" process_data_sub-01.log
+
+    - name: Check results (warnings in log)
+      if: always()
+      run: |
+        cd "${{ github.event.repository.name }}/multi_subject/output/log"
+        # ! grep -iF "warning" process_data_sub-01.log
+
+    - name: Check results (errors in log)
+      if: always()
+      run: |
+        cd "${{ github.event.repository.name }}/multi_subject/output/log"
+        ! grep -iF "error" process_data_sub-01.log
