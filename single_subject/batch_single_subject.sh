@@ -215,7 +215,7 @@ sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 cd ../t2_lumbar
 
 # Use lumbar-specific `sct_deepseg` model to segment the spinal cord
-sct_deepseg -i t2_lumbar.nii.gz -task seg_lumbar_sc_t2w
+sct_deepseg -i t2_lumbar.nii.gz -task seg_lumbar_sc_t2w -qc ~/qc_singleSubj
 
 # Generate labels for the 2 spinal cord landmarks: cauda equinea ('99') and T9-T10 disc ('17')
 # Note: Normally this would be done manually using fsleyes' "Edit mode -> Create mask" functionality. (Uncomment below)
@@ -224,7 +224,7 @@ sct_deepseg -i t2_lumbar.nii.gz -task seg_lumbar_sc_t2w
 #
 # However, since this is an automated script with example data, we will place the labels at known locations for the
 # sake of reproducing the results in the tutorial.
-sct_label_utils -i t2_lumbar.nii.gz -create 27,76,187,17:27,79,80,60 -o t2_lumbar_labels.nii.gz
+sct_label_utils -i t2_lumbar.nii.gz -create 27,76,187,17:27,79,80,60 -o t2_lumbar_labels.nii.gz -qc ~/qc_singleSubj
 
 # Register the image to the template using segmentation and labels
 sct_register_to_template -i t2_lumbar.nii.gz -s t2_lumbar_seg.nii.gz -ldisc t2_lumbar_labels.nii.gz -c t2 -qc ~/qc_singleSubj -param step=1,type=seg,algo=centermassrot:step=2,type=seg,algo=bsplinesyn,metric=MeanSquares,iter=3,slicewise=0:step=3,type=im,algo=syn,metric=CC,iter=3,slicewise=0
