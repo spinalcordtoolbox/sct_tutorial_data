@@ -46,7 +46,7 @@ fi
 # Go to T2 folder
 cd data/t2
 # Spinal cord segmentation (using the new 2024 contrast-agnostic method)
-sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -qc ~/qc_singleSubj
+sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -qc ~/qc_singleSubj  # Outputs t2_sc_seg.nii.gz - why doesn't this error????
 # The default output is t2_seg.nii.gz
 # You can also choose your own output filename using the “-o” argument
 sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -o test/t2_seg_2.nii.gz
