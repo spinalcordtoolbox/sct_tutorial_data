@@ -28,6 +28,7 @@ jobs:
       with:
         repository: spinalcordtoolbox/spinalcordtoolbox
         path: spinalcordtoolbox
+        ref: jn/4805-fix-output-suffix-of-contrast-agnostic-model  # Temporary branch until PR is merged
 
     # install_sct edits ~/.bashrc, but those environment changes don't get passed to subsequent steps in GH Actions.
     # So, we filter through the .bashrc and pass the values to $GITHUB_ENV and $GITHUB_PATH.
