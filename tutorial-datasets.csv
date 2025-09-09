@@ -11,6 +11,8 @@ data_lesion-analysis,single_subject/data/t2_lesion/t2.nii.gz
 data_template-registration,single_subject/data/t2/t2.nii.gz
 data_template-registration,single_subject/data/t2/t2_seg.nii.gz
 data_template-registration,single_subject/data/t2/t2_labels_vert.nii.gz
+data_rootlets-registration,single_subject/data/t2/t2.nii.gz
+data_rootlets-registration,single_subject/data/t2/t2_seg.nii.gz
 data_lumbar-registration,single_subject/data/t2_lumbar/t2_lumbar.nii.gz
 data_coregistration,single_subject/data/t2/warp_template2anat.nii.gz
 data_coregistration,single_subject/data/mt/mt1.nii.gz
