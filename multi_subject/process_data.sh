@@ -83,7 +83,7 @@ segment_if_does_not_exist() {
   else
     echo "Not found. Proceeding with automatic segmentation."
     # Segment spinal cord
-    sct_deepseg -task seg_sc_contrast_agnostic -i "${file}".nii.gz -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
+    sct_deepseg spinalcord -i "${file}".nii.gz -qc "${PATH_QC}" -qc-subject "${SUBJECT}"
   fi
 }
 
