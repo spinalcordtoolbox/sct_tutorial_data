@@ -46,10 +46,10 @@ fi
 # Go to T2 folder
 cd data/t2
 # Spinal cord segmentation (using the new 2024 contrast-agnostic method)
-sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -qc ~/qc_singleSubj
+sct_deepseg spinalcord -i t2.nii.gz -qc ~/qc_singleSubj
 # The default output is t2_seg.nii.gz
 # You can also choose your own output filename using the “-o” argument
-sct_deepseg -task seg_sc_contrast_agnostic -i t2.nii.gz -o test/t2_seg_2.nii.gz
+sct_deepseg spinalcord -i t2.nii.gz -o test/t2_seg_2.nii.gz
 
 # To check the QC report, use your web browser to open the file qc_singleSubj/qc/index.html, which has been created in
 # your home directory
@@ -104,7 +104,7 @@ sct_process_segmentation -i t2_seg.nii.gz -vertfile t2_seg_labeled.nii.gz -persl
 # ======================================================================================================================
 cd ../t2_compression
 # Segment the spinal cord of the compressed spine
-sct_deepseg -task seg_sc_contrast_agnostic -i t2_compressed.nii.gz -qc ~/qc_singleSubj
+sct_deepseg spinalcord -i t2_compressed.nii.gz -qc ~/qc_singleSubj
 # Label the vertebrae using the compressed spinal cord segmentation
 sct_label_vertebrae -i t2_compressed.nii.gz -s t2_compressed_seg.nii.gz -c t2 -qc ~/qc_singleSubj
 # Generate labels for each spinal cord compression site.
@@ -169,7 +169,7 @@ fsleyes t2.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm grey
 # Go to mt folder
 cd ../mt
 # Segment cord
-sct_deepseg -task seg_sc_contrast_agnostic -i mt1.nii.gz -qc ~/qc_singleSubj
+sct_deepseg spinalcord -i mt1.nii.gz -qc ~/qc_singleSubj
 
 # Create a close mask around the spinal cord for more accurate registration (i.e. does not account for surrounding
 # tissue which could move independently from the cord)
@@ -215,7 +215,7 @@ sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1.nii.gz
 cd ../t2_lumbar
 
 # Use lumbar-specific `sct_deepseg` model to segment the spinal cord
-sct_deepseg -i t2_lumbar.nii.gz -task seg_lumbar_sc_t2w -qc ~/qc_singleSubj
+sct_deepseg sc_lumbar_t2 -i t2_lumbar.nii.gz -qc ~/qc_singleSubj
 
 # Generate labels for the 2 spinal cord landmarks: cauda equinea ('99') and T9-T10 disc ('17')
 # Note: Normally this would be done manually using fsleyes' "Edit mode -> Create mask" functionality. (Uncomment below)
@@ -239,7 +239,7 @@ cd ../t2s
 # Segment gray matter (check QC report afterwards)
 sct_deepseg_gm -i t2s.nii.gz -qc ~/qc_singleSubj
 # Spinal cord segmentation
-sct_deepseg -task seg_sc_contrast_agnostic -i t2s.nii.gz -qc ~/qc_singleSubj
+sct_deepseg spinalcord -i t2s.nii.gz -qc ~/qc_singleSubj
 # Subtract GM segmentation from cord segmentation to obtain WM segmentation
 # Note that we use the flag -thr 0 in case some voxels in the GM segmentation are *not* included in the cord
 # segmentation. That would results in voxels in the WM segmentation having the value “-1”, which would cause issues
@@ -311,7 +311,7 @@ cd ../dmri
 sct_dmri_separate_b0_and_dwi -i dmri.nii.gz -bvec bvecs.txt 
 # Segment SC on mean dMRI data
 # Note: This segmentation does not need to be accurate-- it is only used to create a mask around the cord
-sct_deepseg -task seg_sc_contrast_agnostic -i dmri_dwi_mean.nii.gz -qc ~/qc_singleSubj
+sct_deepseg spinalcord -i dmri_dwi_mean.nii.gz -qc ~/qc_singleSubj
 # Create mask (for subsequent cropping)
 sct_create_mask -i dmri_dwi_mean.nii.gz -p centerline,dmri_dwi_mean_seg.nii.gz -size 35mm
 
@@ -320,7 +320,7 @@ sct_dmri_moco -i dmri.nii.gz -m mask_dmri_dwi_mean.nii.gz -bvec bvecs.txt -qc ~/
 # Check results in the QC report
 
 # Segment SC on motion-corrected mean dwi data (check results in the QC report)
-sct_deepseg -task seg_sc_contrast_agnostic -i dmri_moco_dwi_mean.nii.gz -qc ~/qc_singleSubj
+sct_deepseg spinalcord -i dmri_moco_dwi_mean.nii.gz -qc ~/qc_singleSubj
 
 # Register template->dwi via t2 to account for cord shape (which is better defined in T2 contrast)
 # Tips: Here we use the PAM50 contrast t1, which is closer to the dwi contrast (although we are not using type=im in
@@ -357,7 +357,7 @@ sct_create_mask -i fmri.nii.gz -p centerline,t2_seg_reg.nii.gz -size 35mm -f cyl
 sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz -qc ~/qc_singleSubj -qc-seg t2_seg_reg.nii.gz
 
 # Cord segmentation on motion-corrected averaged time series
-sct_deepseg -i fmri_moco_mean.nii.gz -task seg_sc_contrast_agnostic -qc ~/qc_singleSubj/
+sct_deepseg spinalcord -i fmri_moco_mean.nii.gz -qc ~/qc_singleSubj/
 # TSNR before/after motion correction with QC report
 sct_fmri_compute_tsnr -i fmri.nii.gz
 sct_fmri_compute_tsnr -i fmri_moco.nii.gz
@@ -380,7 +380,7 @@ sct_warp_template -d fmri_moco_mean.nii.gz -w warp_template2fmri.nii.gz -a 0 -qc
 
 cd ../t1
 # Segment T1-weighted image (to be used in later steps)
-sct_deepseg -task seg_sc_contrast_agnostic -i t1.nii.gz -qc ~/qc_singleSubj/
+sct_deepseg spinalcord -i t1.nii.gz -qc ~/qc_singleSubj/
 
 # Smooth spinal cord along centerline (extracted from the segmentation)
 sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
@@ -402,7 +402,7 @@ sct_flatten_sagittal -i t1.nii.gz -s t1_seg.nii.gz
 cd ../t2_lesion
 # Segment the spinal cord and intramedullary lesion using the SCIsegV2 model
 # Note: t2.nii.gz contains a fake lesion for the purpose of this tutorial
-sct_deepseg -i t2.nii.gz -task seg_sc_lesion_t2w_sci -qc ~/qc_singleSubj
+sct_deepseg lesion_sci_t2 -i t2.nii.gz -qc ~/qc_singleSubj
 # Note: Two files are output:
 # - t2_sc_seg.nii.gz: the spinal cord segmentation
 # - t2_lesion_seg.nii.gz: the lesion segmentation
@@ -410,9 +410,9 @@ sct_deepseg -i t2.nii.gz -task seg_sc_lesion_t2w_sci -qc ~/qc_singleSubj
 fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.nii.gz -cm blue-lightblue -a 70.0 &
 
 # Note: We also have a contrast-agnostic segmentation command for MS lesions, too:
-sct_deepseg -i t2.nii.gz -task seg_ms_lesion -qc ~/qc_singleSubj
+sct_deepseg lesion_ms -i t2.nii.gz -qc ~/qc_singleSubj
 # As well as a segmentation command tailored to MP2RAGE MS lesions
-# sct_deepseg -i t2.nii.gz -task seg_ms_lesion_mp2rage -qc ~/qc_singleSubj
+# sct_deepseg lesion_ms_mp2rage -i t2.nii.gz -qc ~/qc_singleSubj
 
 # Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
 sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
@@ -423,22 +423,22 @@ sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSu
 
 # Segment the spinal cord on gradient echo EPI data
 cd ../fmri/
-sct_deepseg -i fmri_moco_mean.nii.gz -task seg_sc_epi -qc ~/qc_singleSubj
+sct_deepseg sc_epi -i fmri_moco_mean.nii.gz -qc ~/qc_singleSubj
 
 # Canal segmentation
 cd ../t2
-sct_deepseg -i t2.nii.gz -task canal_t2w -qc ~/qc_singleSubj
+sct_deepseg sc_canal_t2 -i t2.nii.gz -qc ~/qc_singleSubj
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_canal_seg_seg.nii.gz -cm red -a 70.0 &
 
 # Full spinal segmentation (Vertebrae, Intervertebral discs, Spinal cord and Spinal canal)
 # Segment using totalspineseg
-sct_deepseg -i t2.nii.gz -task totalspineseg -qc ~/qc_singleSubj
+sct_deepseg totalspineseg -i t2.nii.gz -qc ~/qc_singleSubj
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_step1_canal.nii.gz -cm YlOrRd -a 70.0 t2_step1_cord.nii.gz -cm YlOrRd -a 70.0 t2_step1_levels.nii.gz -cm subcortical -a 70.0 t2_step1_output.nii.gz -cm subcortical -a 70.0 t2_step2_output.nii.gz -cm subcortical -a 70.0 &
 
 # Segment the spinal nerve rootlets
-sct_deepseg -i t2.nii.gz -task seg_spinal_rootlets_t2w -qc ~/qc_singleSubj
+sct_deepseg rootlets -i t2.nii.gz -qc ~/qc_singleSubj
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_rootlets.nii.gz -cm subcortical -a 70.0 &
 
