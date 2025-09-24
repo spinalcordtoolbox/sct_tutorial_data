@@ -50,6 +50,12 @@ jobs:
         cd "${{ github.event.repository.name }}/multi_subject"
         sct_run_batch -script process_data.sh -config config.yml
 
+    - name: "Upload CSV files for easier tutorial updating"
+      uses: actions/upload-artifact@v4
+      with:
+        name: Multi Subject CSV Files
+        path: multi_subject/output/**/*.csv
+
     - name: Output full log for sanity checking
       run: |
         cd "${{ github.event.repository.name }}/multi_subject/output/log"
