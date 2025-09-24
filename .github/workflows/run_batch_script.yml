@@ -57,16 +57,20 @@ jobs:
         path: multi_subject/output/**/*.csv
 
     - name: Output full log for sanity checking
+      if: always()
       run: |
         cd "${{ github.event.repository.name }}/multi_subject/output/log"
-        for logfile in process_data_sub-01.log err.process_data_sub-01.log; do
-            if [[ -e "${logfile}" ]]; then
-                echo "=== Contents of ${logfile} ==="
-                cat "${logfile}"
-            else
-                echo "=== No file ${logfile} ==="
-            fi
-        done
+        for subxx in sub-01 sub-03 sub-05; do
+            for logfile in process_data_${subxx}.log err.process_data_${subxx}.log; do
+                if [[ -e "${logfile}" ]]; then
+                    echo "=== Contents of ${logfile} ==="
+                    cat "${logfile}"
+                else
+                    echo "=== No file ${logfile} ==="
+                fi
+            done
+        done 
+
 
     - name: Check results (no error logs)
       if: always()
