@@ -40,6 +40,10 @@ jobs:
         cat ~/.bashrc | grep "export SCT_DIR" | cut -d " " -f 2 >> $GITHUB_ENV
         cat ~/.bashrc | grep "export PATH" | grep -o "/.*" | cut -d ':' -f 1 >> $GITHUB_PATH
 
+    - name: Pre-download necessary models
+      run: |
+        sct_deepseg spinalcord -install
+
     - name: "Checkout '${{ github.event.repository.name }}'"
       uses: actions/checkout@v4
       with:
