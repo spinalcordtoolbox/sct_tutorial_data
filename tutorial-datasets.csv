@@ -50,3 +50,4 @@ data_visualizing-misaligned-cords,single_subject/data/t1/t1_seg.nii.gz
 data_batch-processing-of-subjects,multi_subject/process_data.sh
 data_batch-processing-of-subjects,multi_subject/config.yml
 data_batch-processing-of-subjects,multi_subject/data/
+data_ms-lesion-segmentation,single_subject,single_subject/data/t2_ms/t2.nii.gz
