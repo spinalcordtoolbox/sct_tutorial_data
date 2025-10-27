@@ -439,8 +439,10 @@ fsleyes t2.nii.gz -cm greyscale t2_rootlets.nii.gz -cm subcortical -a 70.0 &
 
 # Multiple sclerosis lesion segmentation on T2-weighted images
 cd ../t2_ms/
-# Segment using lesion_ms
-sct_deepseg lesion_ms -i t2.nii.gz -qc ~/qc_singleSubj
+# Segment the spinal cord (to be used as input for lesion_ms QC)
+sct_deepseg spinalcord -i t2.nii.gz -qc ~/qc_singleSubj
+# Segment using lesion_ms (-single-fold is recommended to speed up inference time)
+sct_deepseg lesion_ms -i t2.nii.gz -qc ~/qc_singleSubj -qc-seg t2_seg.nii.gz -single-fold
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_lesion_seg.nii.gz -cm red -a 70.0 &
 
