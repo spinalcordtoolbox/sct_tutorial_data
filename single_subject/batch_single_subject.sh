@@ -398,7 +398,7 @@ sct_flatten_sagittal -i t1.nii.gz -s t1_seg.nii.gz
 # New features (SCT v6.5, December 2024)
 # ======================================================================================================================
 
-# Lesion analysis for SCI and MS lesions
+# Lesion analysis for SCI
 cd ../t2_lesion
 # Segment the spinal cord and intramedullary lesion using the SCIsegV2 model
 # Note: t2.nii.gz contains a fake lesion for the purpose of this tutorial
@@ -408,11 +408,6 @@ sct_deepseg lesion_sci_t2 -i t2.nii.gz -qc ~/qc_singleSubj
 # - t2_lesion_seg.nii.gz: the lesion segmentation
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.nii.gz -cm blue-lightblue -a 70.0 &
-
-# Note: We also have a contrast-agnostic segmentation command for MS lesions, too:
-sct_deepseg lesion_ms -i t2.nii.gz -qc ~/qc_singleSubj
-# As well as a segmentation command tailored to MP2RAGE MS lesions
-# sct_deepseg lesion_ms_mp2rage -i t2.nii.gz -qc ~/qc_singleSubj
 
 # Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
 sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
@@ -441,6 +436,13 @@ fsleyes t2.nii.gz -cm greyscale t2_step1_canal.nii.gz -cm YlOrRd -a 70.0 t2_step
 sct_deepseg rootlets -i t2.nii.gz -qc ~/qc_singleSubj
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_rootlets.nii.gz -cm subcortical -a 70.0 &
+
+# Multiple sclerosis lesion segmentation on T2-weighted images
+cd ../t2_ms/
+# Segment using lesion_ms
+sct_deepseg lesion_ms -i t2.nii.gz -qc ~/qc_singleSubj
+# Check results using FSLeyes
+fsleyes t2.nii.gz -cm greyscale t2_lesion_seg.nii.gz -cm red -a 70.0 &
 
 # Return to parent directory
 cd ..
