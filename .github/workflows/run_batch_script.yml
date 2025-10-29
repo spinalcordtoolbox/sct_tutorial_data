@@ -58,7 +58,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Multi Subject CSV Files
-        path: multi_subject/output/**/*.csv
+        path: ${{ github.event.repository.name }}/multi_subject/output/**/*.csv
 
     - name: Output full log for sanity checking
       if: always()

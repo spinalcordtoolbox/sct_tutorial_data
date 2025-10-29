@@ -64,7 +64,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Single Subject CSV Files
-        path: single_subject/data/**/*.csv
+        path: ${{ github.event.repository.name }}/single_subject/data/**/*.csv
 
     - name: "Package data into tutorial-specific .zip files"
       run: |
