@@ -9,8 +9,10 @@ def extract_sct_commands(paths, output=None):
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 stripped = line.lstrip()
+                # sct commands must have command + arg + value (3)
+                # this excludes slide subtitles like "sct_slide ..."
                 if (stripped.startswith("sct_") and
-                        len(stripped.split(" ")) > 1):
+                        len(stripped.split(" ")) >= 3):
                     results.append(stripped.rstrip())
 
     if output:
