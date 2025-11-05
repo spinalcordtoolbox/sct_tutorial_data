@@ -11,7 +11,9 @@ on:
 
 jobs:
   compare:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
+    env:
+      YDIFF_OPTIONS: "--side-by-side --pager=cat --color=always --width=120 --nowrap"
 
     steps:
       - name: Check out repo
@@ -21,6 +23,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Install `ydiff`  # https://github.com/ymattw/ydiff
+        run: brew install ydiff
 
       - name: Download remote text file
         run: |
@@ -43,7 +48,8 @@ jobs:
       - name: Diff commands
         run: |
           echo "🔍 Diffing remote vs local..."
-          diff -u local_cmds_sorted.txt remote_cmds_sorted.txt || true
+          diff -u local_cmds_sorted.txt remote_cmds_sorted.txt > diff.txt || true
+          ydiff < diff.txt
 
       - name: Upload results as artifacts
         uses: actions/upload-artifact@v4
