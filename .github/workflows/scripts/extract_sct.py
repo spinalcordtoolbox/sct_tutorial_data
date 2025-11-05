@@ -9,12 +9,17 @@ def extract_sct_commands(paths, output=None):
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 stripped = line.lstrip()
-                # sct commands must have command + arg + value (3)
-                # this excludes slide subtitles like "sct_slide ..."
-                # also exclude lines with <> which are likely placeholders
+                # Find relavent SCT commands to compare
                 if (stripped.startswith("sct_")
+                        # sct commands must have command + arg + value (3)
+                        # this excludes slide subtitles like "sct_slide ..."
                         and len(stripped.split(" ")) >= 3
-                        and not ("<" in stripped and ">" in stripped)):
+                        # exclude lines with <> which are likely placeholders
+                        and not ("<" in stripped and ">" in stripped)
+                        # exclude sct_download_data (data already present)
+                        and not stripped.startswith("sct_download_data")
+                        # exclude sct_run_batch (handled in .yml workflow)
+                        and not stripped.startswith("sct_run_batch")):
                     results.append(stripped.rstrip())
 
     if output:
