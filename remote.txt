@@ -892,7 +892,7 @@ MEAN(solidity)
 0.9221
 58
 # Presented by Jan
-sct_process_segmentation output also includes metrics to analyse the shape of the spinal cord in the axial plane, such as AP diameter, RL diameter, eccentricity, solidity, and orientation. These are of particular interest for studying spinal cord compression. See [Martin et al. BMJ Open 2018] and [Horáková M et al. QIMS 2022] for example applications in degenerative cervical myelopathy.
+The output of sct_process_segmentation also includes metrics to analyse the shape of the spinal cord in the axial plane, such as AP diameter, RL diameter, eccentricity, solidity, and orientation. These are of particular interest for studying spinal cord compression. See [Martin et al. BMJ Open 2018] and [Horáková M et al. QIMS 2022] for example applications in degenerative cervical myelopathy.
 
 The left panel shows a sagittal T2w image of a subject with spinal cord compression. The compression is highlighted by the red arrow and shown in detail in the axial image below.
 
@@ -921,7 +921,7 @@ The flag -normalize-PAM50 let you bring/normalize the shape metrics to the PAM50
 Notice that the slice numbering now corresponds to the PAM50 template!
 Valošek, Bédard et al. NeuroLibre 2023; Imaging Neuroscience 2024
 # Presented by Jan
-sct_process_segmentation allows you to bring/normalize the shape metrics to the anatomical dimensions of the PAM50 spinal cord template.
+The sct_process_segmentation script allows you to bring/normalize the shape metrics to the anatomical dimensions of the PAM50 spinal cord template.
 
 The PAM50 template will be covered in detail in the next section. But, briefly, the spinal cord template is a standard reference space created by a combination of data from many subjects.
 
@@ -987,7 +987,7 @@ in v6.0
 👉 See the tutorial for more details.
 MSCC: Maximum spinal cord compression
 # Presented by Jan
-sct_compute_compression is another function related to spinal cord shape analysis. It allows you to compute metrics quantifying spinal cord compression.
+The sct_compute_compression script is another tool related to spinal cord shape analysis. It allows you to compute metrics quantifying spinal cord compression.
 
 The computation is based on the MSCC (maximum spinal cord compression) formula.
 The shape metrics (such as AP diameter) at the level of compression (red arrow in the left sagittal T2w image) are normalized using the non-compressed levels above and below the compression site.
@@ -2365,7 +2365,7 @@ sct_maths
  -mi <file>                  Compute the mutual information (MI) between two images
  -symmetrize {0,1,2}         Symmetrize data along the specified dimension.
   And more...!
-sct_maths (fslmaths’ little sister) contains useful functions to apply operations on the image data, such as basic arithmetic operations, thresholding, mathematical morphology and filtering. For more information, type sct_maths -h
+The sct_maths script (fslmaths’ little sister) contains useful functions to apply operations on the image data, such as basic arithmetic operations, thresholding, mathematical morphology and filtering. For more information, type sct_maths -h
 
  Manipulate images
 150
@@ -2392,7 +2392,7 @@ ORIENTATION OPERATIONS:
   -transpose            Transpose the axes (x,y,z) of the data array. (Does not modify header.)
   And more...!
 
-sct_image contains useful functions to manipulate images, such as padding, splitting, keeping/removing volumes on 4d data, re-orienting, etc. For more information type sct_image -h
+The sct_image script contains useful functions to manipulate images, such as padding, splitting, keeping/removing volumes on 4d data, re-orienting, etc. For more information type sct_image -h
 
  Image stitching
 Lavdas, Glocker et al. Clin. Radiol. 2019
@@ -2791,7 +2791,7 @@ The function automatically computes several morphometric measures and saves them
 
  Atlas-based lesion analysis
 sct_analyze_lesion -f
-sct_analyze_lesion -f  flag allows you to provide a folder containing an template/atlas registered to an anatomical image. If specified, the function computes:
+The sct_analyze_lesion -f flag allows you to provide a folder containing an template/atlas registered to an anatomical image. If specified, the function computes:
 The proportion of lesion within each vertebral level and each region of the template/atlas (e.g. GM, WM, WM tracts)
 
 
