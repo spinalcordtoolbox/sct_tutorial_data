@@ -9,7 +9,8 @@ def extract_sct_commands(paths, output=None):
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 stripped = line.lstrip()
-                if stripped.startswith("sct_"):
+                if (stripped.startswith("sct_") and
+                        len(stripped.split(" ")) > 1):
                     results.append(stripped.rstrip())
 
     if output:
