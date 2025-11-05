@@ -620,7 +620,7 @@ e.g. mouse, lumbar, MS/SCI lesions, compressed cord, etc. where “general-purpo
 SCT has other tools you can try:
 SCT’s past SC models (sct_propseg, sct_deepseg_sc)
 One of sct_deepseg‘s 15 different segmentation models
-sct_propseg, sct_deepseg_sc, sct_deepseg
+sct_propseg/sct_deepseg_sc/sct_deepseg
 
  Model gallery
 46
@@ -1431,7 +1431,7 @@ sct_register_multimodal
 # Register template->mt1. The flag -initwarp ../t2/warp_template2anat.nii.gz initializes the registration using the template->t2 transformation which was previously estimated
 # Tips: Here we only use the segmentations (type=seg) to minimize the sensitivity of the registration procedure to image artifacts.
 # Tips: First step: algo=centermass to align source and destination segmentations, then algo=bpslinesyn to adapt the shape of the cord to the mt modality (in case there are distortions between the t2 and the mt scan).
-sct_register_multimodal -i "$SCT_DIR"/data/PAM50/template/PAM50_t2.nii.gz -iseg "$SCT_DIR"/data/PAM50/template/PAM50_cord.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -owarp warp_template2mt.nii.gz -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_cord.nii.gz -d mt1.nii.gz -dseg mt1_seg.nii.gz -m mask_mt1.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -owarp warp_template2mt.nii.gz -qc ~/qc_singleSubj
 https://drive.google.com/file/d/0Bx3A13n3Q_EAYTVVQTFYMjhDU0U
 Then, we register the PAM50 to the mt space. Note that we don’t use the function sct_register_to_template, but instead we use sct_register_multimodal. The reason being that we start from the pre-registration (i.e. PAM50—>t2 done previously), which already contains information about vertebral labeling. We assume that the subject did not move “too much” in the superior-inferior direction (usually a fair assumption) and we only refine the PAM50—>mt registration by account for small motion (e.g., head tilting) and potential distortions that are inherent to the contrast.
 
@@ -1555,7 +1555,7 @@ You can either choose to use 1 label (just 60), or 2 labels (60 + some other lan
 # Open images in viewer (to identify coords within the seg slices)
 fsleyes t2_lumbar.nii.gz -cm greyscale t2_lumbar_seg.nii.gz -cm red &
 # Use coords to label the T9-T10 disc (17) and conus medullaris (60)
-sct_label_utils -i t2_lumbar.nii.gz -create 27,76,187,17:27,79,80,60 -o t2_lumbar_labels.nii.gz
+sct_label_utils -i t2_lumbar.nii.gz -create 27,76,187,17:27,79,80,60 -o t2_lumbar_labels.nii.gz -qc ~/qc_singleSubj
 # Create QC report entry for generated labels
 sct_qc -i t2_lumbar.nii.gz -s t2_lumbar_labels.nii.gz -p sct_label_utils -qc ~/qc_singleSubj
 t2_lumbar
@@ -2183,7 +2183,7 @@ sct_create_mask -i fmri.nii.gz -p centerline,t2_seg_reg.nii.gz -size 35mm -f cyl
 # Motion correction (using mask)
 sct_fmri_moco -i fmri.nii.gz -m mask_fmri.nii.gz -qc ~/qc_singleSubj -qc-seg t2_seg_reg.nii.gz
 # Cord segmentation on motion-corrected averaged time series
-sct_deepseg spinalcord -i fmri_mean.nii.gz -qc ~/qc_singleSubj/
+sct_deepseg spinalcord -i fmri_moco_mean.nii.gz -qc ~/qc_singleSubj/
 # TSNR before/after motion correction with QC report
 sct_fmri_compute_tsnr -i fmri.nii.gz
 sct_fmri_compute_tsnr -i fmri_moco.nii.gz
