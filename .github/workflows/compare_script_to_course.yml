@@ -29,7 +29,7 @@ jobs:
 
       - name: Download remote text file
         run: |
-          curl -L https://gist.githubusercontent.com/joshuacwnewton/3c554bf27111cf0020e5c124b66448c4/raw/ff08cbcf7738941008eca0fa54e024d98eea24e8/gistfile1.txt -o remote.txt
+          # curl -L https://gist.githubusercontent.com/joshuacwnewton/3c554bf27111cf0020e5c124b66448c4/raw/ff08cbcf7738941008eca0fa54e024d98eea24e8/gistfile1.txt -o remote.txt
           echo "✅ Downloaded remote file:"
           wc -l remote.txt
 
