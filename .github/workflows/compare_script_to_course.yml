@@ -13,7 +13,7 @@ jobs:
   compare:
     runs-on: macos-latest
     env:
-      YDIFF_OPTIONS: "--side-by-side --pager=cat --color=always --width=120 --nowrap"
+      YDIFF_OPTIONS: "--pager=cat --color=always --width=120 --nowrap"
 
     steps:
       - name: Check out repo
