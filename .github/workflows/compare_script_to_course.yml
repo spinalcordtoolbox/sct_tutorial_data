@@ -1,0 +1,60 @@
+name: Compare SCT Commands
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      text_url:
+        description: "URL to text file (e.g. GitHub raw gist link)"
+        required: true
+        type: string
+
+jobs:
+  compare:
+    runs-on: macos-latest
+    env:
+      YDIFF_OPTIONS: "--unified --pager=cat --color=always --width=120 --nowrap"
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Install Python (for parsing script)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install `ydiff`  # https://github.com/ymattw/ydiff
+        run: brew install ydiff
+
+      - name: Download remote text file
+        run: |
+          curl -L https://gist.githubusercontent.com/joshuacwnewton/3c554bf27111cf0020e5c124b66448c4/raw/ff08cbcf7738941008eca0fa54e024d98eea24e8/gistfile1.txt -o remote.txt
+          echo "✅ Downloaded remote file:"
+          wc -l remote.txt
+
+      - name: Extract commands from remote file
+        run: |
+          python3 .github/workflows/scripts/extract_sct.py remote.txt -o remote_cmds.txt
+          sort -u remote_cmds.txt > remote_cmds_sorted.txt
+          echo "✅ Extracted $(wc -l < remote_cmds_sorted.txt) commands from remote file"
+
+      - name: Extract commands from local batch script
+        run: |
+          python3 .github/workflows/scripts/extract_sct.py single_subject/batch_single_subject.sh -o local_cmds.txt
+          sort -u local_cmds.txt > local_cmds_sorted.txt
+          echo "✅ Extracted $(wc -l < local_cmds_sorted.txt) commands from local script"
+
+      - name: Diff commands
+        run: |
+          echo "🔍 Diffing remote vs local..."
+          diff -u local_cmds_sorted.txt remote_cmds_sorted.txt > diff.txt || true
+          ydiff < diff.txt
+
+      - name: Upload results as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: command-diff-output
+          path: |
+            remote_cmds_sorted.txt
+            local_cmds_sorted.txt
