@@ -9,6 +9,8 @@ def extract_sct_commands(paths, output=None):
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 stripped = line.lstrip()
+                if stripped.startswith("# sct_"):
+                    stripped = stripped[2:]
                 # Find relavent SCT commands to compare
                 if (stripped.startswith("sct_")
                         # sct commands must have command + arg + value (3)
