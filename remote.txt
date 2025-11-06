@@ -720,7 +720,7 @@ Two files representing either vertebral or disc levels are output from sct_label
 sct_label_utils -create-viewer
 # If TotalSpineSeg did not work, you might want to do it manually. In that case, we provide a viewer to do so conveniently.
 # In the example below, we will create labels at the intervertebral discs C2-C3 (value=3), C3-C4 (value=4) and C4-C5 (value=5).
-sct_label_utils -i t2.nii.gz -create-viewer 3-5 -o t2_discs.nii.gz -msg "Click at the posterior tip of the intervertebral disc" -qc ~/qc_singleSubj
+sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
 t2
 t2_discs.nii.gz
 3
@@ -1353,8 +1353,8 @@ sct_concat_transfo -d <file> -w <list of: file>
 Warping fields
 To make warping field FSL/SPM-compatible:
 # Convert ITK warping field to FSL warping field
-sct_image -i warp_itk.nii.gz -to-fsl input_img.nii.gz -o warp_fsl.nii.gz
-# NB: 'input_img.nii.gz' is the source image you will be applying the warping field to, and is used as a reference for the source voxel space
+sct_image -i <ITK_WARP> -to-fsl <SOURCE_IMG> -o <FSL_WARP>
+# NB: '<SOURCE_IMG>' is the source image you will be applying the warping field to, and is used as a reference for the source voxel space
 Those warping fields are using ITK convention, which is not compatible with software such as FSL or SPM. If you are using non-ITK third-party software for post-processing (e.g., group analysis in fMRI), you can transform your warping field using sct_image to have them compatible with your software.
 
 WARNING: The ITK/FSL warping field conversion shown here only works if the source and destination files are in the same voxel space. If they are different, you will need to provide a second image to act as a reference for the destination space. More details can be found on https://spinalcordtoolbox.com/overview/concepts/warping-fields.html#compatibility-with-non-itk-software-fsl-spm.
@@ -2704,7 +2704,8 @@ New lesion segmentation tools
 SCIseg: Deep learning-based segmentation of the spinal cord and intramedullary lesions in spinal cord injury (SCI) on T2w images
 Works on different FOV, resolution (isotropic, axial, sagittal)
 Works across different SCI etiologies (traumatic SCI, ischemic SCI, and degenerative cervical myelopathy) and phases (acute, sub-acute, and chronic)
-Naga Karthik*, Valošek* et al. Radiology: AI 2024; Naga Karthik*, Valošek* et al. MICCAI AMAI 2024
+Naga Karthik, Valošek et al. MICCAI AMAI 2024
+Naga Karthik, Valošek et al. Radiology: AI 2025
  Lesion Segmentation in Spinal Cord Injury
 T2w Image
 Lesion and Spinal Cord
@@ -2712,9 +2713,9 @@ Segmentation
 Lesion
 Spinal Cord
 173
-# Presented by Jan
-Recently, we introduced a new segmentation model for spinal cord injury (SCI) T2w images called SCIseg.
-It initially segments the spinal cord followed by a intramedullary lesion segmentation in the subsequent step.
+# Presented by Jan/Julien
+SCIseg is a deep learning model for segmentation of spinal cord injury (SCI) T2w images.
+It initially segments the spinal cord followed by a intramedullary lesion segmentation in the subsequent step (nnUNet region-based approach).
 The model was developed on multiple SCI datasets with heterogeneous image orientations, resolutions, and FOVs.
 It generalizes to different phases of traumatic SCI and also to lesions in degenerative cervical myelopathy, which is a type of non-traumatic SCI characterized by chronic degenerative spinal cord compression
 
@@ -2751,8 +2752,9 @@ in v6.4
  Lesion Segmentation in Spinal Cord Injury
 Lesion
 Spinal Cord
-Naga Karthik*, Valošek* et al. Radiology: AI 2024 ; Naga Karthik*, Valošek* et al. MICCAI AMAI 2024
-# Presented by Jan
+Naga Karthik, Valošek et al. MICCAI AMAI 2024
+Naga Karthik, Valošek et al. Radiology: AI 2025
+# Presented by Jan/Julien
 Here, we will apply the SCIseg model to a subject with fake lesion (because of the difficulty to share patient data).
 The model is called using the sct_deepseg function.
 The model outputs two nifti files: spinal cord segmentation and lesion segmentation
@@ -2768,7 +2770,9 @@ Spinal Cord
 Segmentation
 Lesion Analysis
 176
-# Presented by Jan
+Naga Karthik, Valošek et al. MICCAI AMAI 2024
+Naga Karthik, Valošek et al. Radiology: AI 2025Valošek J,, Pfyffer D et al. ISMRM 2025Pfyffer D et al. Lancet Neurol 2024
+# Presented by Jan/Julien
 Lesion and spinal cord segmentation masks can be used to calculate various morphometric measures such as number of lesions, lesion length, lesion volume, tissue bridges, etc.
 The figure below shows examples of two such morphometric measures: lesion length and ventral and dorsal tissue bridges.
 
@@ -2784,7 +2788,7 @@ QC report showing tissue bridges:
 NEW
 in v6.4
 177
-# Presented by Jan
+# Presented by Jan/Julien
 Morphometric measures can be computed using the sct_analyze_lesion function.
 This function requires two inputs: lesion segmentation and spinal cord segmentation
 The function automatically computes several morphometric measures and saves them into an XLSX file. Moreover, the function generates an HTML QC report for tissue bridges.
@@ -2801,7 +2805,7 @@ sct_warp_template -d t2.nii.gz -w ../t2/warp_template2anat.nii.gz
 sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label -qc ~/qc_singleSubj
 
 178
-# Presented by Jan
+# Presented by Jan/Julien
 Additionally, the sct_analyze_lesion function allows you to provide a folder containing an atlas/template registered to an anatomical image.
 If specified, sct_analyze_lesion computes the proportion of lesion within each vertebral level and each region of the template/atlas (e.g. GM, WM, WM tracts).
 
@@ -2920,9 +2924,9 @@ NEW
 in v7.0
 Fig ref: Cadotte et al., AJNR, 2015
 sct_deepseg rootlets
-# Presented by Jan
-Recently, a new model was added to SCT to segment the dorsal spinal nerve rootlets from T2-weighted images.
-The model provides level-specific (so-called multi-class) segmentation of the dorsal spinal nerve rootlets.
+# Presented by Jan/Julien
+Recently, the rootlets segmentation model (RootletSeg) was updated to segment both dorsal and ventral spinal nerve rootlets from T2-weighted and MP2RAGE images (including T1w).
+The model provides level-specific (so-called multi-class) segmentation of the C2-Th1 dorsal and ventral spinal nerve rootlets.
 Nerve rootlets can be used to obtain different spinal levels (e.g., C2, C3, C4, etc.).
 These spinal levels can be used as an alternative to vertebral levels for the registration to the template to perform group-level analysis.
 
@@ -2938,9 +2942,9 @@ sct_deepseg rootlets
 192
 Valošek et al. Imaging Neuroscience 2024
 Krejci et al. arXiv 2025
-# Presented by Jan
+# Presented by Jan/Julien
 The rootlets segmentation model is available via the sct_deepseg function.
-The model requires a single input: T2w image
+The model requires a single input: T2w or MP2RAGE image
 It outputs level-specific segmentation of the dorsal spinal nerve rootlets
 
 Bédard et al. Imaging Neuroscience 2025
@@ -3006,7 +3010,7 @@ Fix mis-registration of WM/GM atlas in lumbar levels
 Extend T2*w template towards lumbar cord
 Add label for lumbo-sacral enlargement
 WIP: Re-generate AMU & Zurich T2*w template and WM/GM atlas
-Collaboration: Jan Valosek (Montreal/Zurich), Virginie Callot (AMU), Christian Kündig, Silvan Büeler (Zurich), Raphaelle Schlienger (AMU)
+Collaboration: Jan Valosek (Montreal/Zurich), Virginie Callot (AMU), Christian Kündig, Silvan Büeler, Gergely David (Zurich), Raphaelle Schlienger (AMU)
 Upcoming features
 AMU15
 Zurich42
