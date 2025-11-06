@@ -63,12 +63,16 @@ sct_deepseg -h
 # Vertebral labeling
 # ======================================================================================================================
 
+# Vertebral disc labeling
+sct_deepseg totalspineseg -step1-only -i t2.nii.gz -qc ~/qc_singleSubj
+
+# TODO: Replace the command below with `-discfile`-based shape analysis
 # Vertebral labeling
 sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -qc ~/qc_singleSubj
 # Check QC report: Go to your browser and do "refresh".
 # Note: Here, two files are output: t2_seg_labeled, which represents the labeled segmentation (i.e., the value
 #       corresponds to the vertebral level), and t2_seg_labeled_discs, which only has a single point for each
-#       inter-vertebral disc level. The convention is: Value 3 —> C2-C3 disc, Value 4 —> C3-C4 disc, etc.
+#       intersct_deepseg spinalcord -i t2.nii.gz-vertebral disc level. The convention is: Value 3 —> C2-C3 disc, Value 4 —> C3-C4 disc, etc.
 
 # OPTIONAL: If automatic labeling did not work, you can initialize with manual identification of C2-C3 disc:
 #sct_label_utils -i t2.nii.gz -create-viewer 3 -o label_c2c3.nii.gz -msg "Click at the posterior tip of C2/C3 inter-vertebral disc"
@@ -132,9 +136,9 @@ sct_label_utils -i t2_seg_labeled.nii.gz -vert-body 3,9 -o t2_labels_vert.nii.gz
 sct_qc -i t2.nii.gz -s t2_labels_vert.nii.gz -p sct_label_utils -qc ~/qc_singleSubj
 
 # OPTIONAL: You might want to completely bypass sct_label_vertebrae and do the labeling manually. In that case, we
-# provide a viewer to do so conveniently. In the example command below, we will create labels at the inter-vertebral
-# discs C2-C3 (value=3), C3-C4 (value=4) and C4-C5 (value=5).
-#sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
+#           provide a viewer to do so conveniently. In the example command below, we will create labels at the inter-vertebral
+#           discs C2-C3 (value=3), C3-C4 (value=4) and C4-C5 (value=5).
+# sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
 
 # Register t2->template.
 sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -l t2_labels_vert.nii.gz -c t2 -qc ~/qc_singleSubj
@@ -225,6 +229,9 @@ sct_deepseg sc_lumbar_t2 -i t2_lumbar.nii.gz -qc ~/qc_singleSubj
 # However, since this is an automated script with example data, we will place the labels at known locations for the
 # sake of reproducing the results in the tutorial.
 sct_label_utils -i t2_lumbar.nii.gz -create 27,76,187,17:27,79,80,60 -o t2_lumbar_labels.nii.gz -qc ~/qc_singleSubj
+
+# generate a QC report for the lumbar labels
+sct_qc -i t2_lumbar.nii.gz -s t2_lumbar_labels.nii.gz -p sct_label_utils -qc ~/qc_singleSubj
 
 # Register the image to the template using segmentation and labels
 sct_register_to_template -i t2_lumbar.nii.gz -s t2_lumbar_seg.nii.gz -ldisc t2_lumbar_labels.nii.gz -c t2 -qc ~/qc_singleSubj -param step=1,type=seg,algo=centermassrot:step=2,type=seg,algo=bsplinesyn,metric=MeanSquares,iter=3,slicewise=0:step=3,type=im,algo=syn,metric=CC,iter=3,slicewise=0
@@ -387,7 +394,7 @@ sct_smooth_spinalcord -i t1.nii.gz -s t1_seg.nii.gz
 # Tips: use flag "-sigma" to specify smoothing kernel size (in mm)
 
 # Second-pass segmentation using the smoothed anatomical image
-sct_deepseg_sc -i t1_smooth.nii.gz -c t1 -qc ~/qc_singleSubj
+sct_deepseg spinalcord -i t1_smooth.nii.gz -qc ~/qc_singleSubj
 
 # Align the spinal cord in the right-left direction using slice-wise translations.
 sct_flatten_sagittal -i t1.nii.gz -s t1_seg.nii.gz
@@ -410,16 +417,17 @@ sct_deepseg lesion_sci_t2 -i t2.nii.gz -qc ~/qc_singleSubj
 fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.nii.gz -cm blue-lightblue -a 70.0 &
 
 # Note: We also have a contrast-agnostic segmentation command for MS lesions, too:
-sct_deepseg lesion_ms -i t2.nii.gz -qc ~/qc_singleSubj
-# As well as a segmentation command tailored to MP2RAGE MS lesions
-# sct_deepseg lesion_ms_mp2rage -i t2.nii.gz -qc ~/qc_singleSubj
+# t2_seg.nii.gz used for QC only
+sct_deepseg spinalcord -i t2.nii.gz
+sct_deepseg lesion_ms -i t2.nii.gz -qc ~/qc_singleSubj -qc-seg t2_seg.nii.gz -single-fold
 
 # Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
 sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
 # Lesion analysis using PAM50 (the -f flag is used to specify the folder containing the atlas/template)
 # Note: You must go through the "Register to Template" steps (labeling, registration) first
 #       This is because `sct_warp_template` is required to generate the `label` folder used for `-f`
-# sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label -qc ~/qc_singleSubj
+sct_warp_template -d t2.nii.gz -w ../t2/warp_template2anat.nii.gz
+sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label -qc ~/qc_singleSubj
 
 # Segment the spinal cord on gradient echo EPI data
 cd ../fmri/
@@ -430,6 +438,8 @@ cd ../t2
 sct_deepseg sc_canal_t2 -i t2.nii.gz -qc ~/qc_singleSubj
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_canal_seg_seg.nii.gz -cm red -a 70.0 &
+# Use canal segmentation to compute aSCOR
+sct_compute_ascor -i-SC t2_seg.nii.gz -i-canal t2_canal_seg.nii.gz -perlevel -1 -o ascor.csv
 
 # Full spinal segmentation (Vertebrae, Intervertebral discs, Spinal cord and Spinal canal)
 # Segment using totalspineseg
