@@ -420,8 +420,6 @@ fsleyes t2.nii.gz -cm greyscale t2_sc_seg.nii.gz -cm red -a 70.0 t2_lesion_seg.n
 # t2_seg.nii.gz used for QC only
 sct_deepseg spinalcord -i t2.nii.gz
 sct_deepseg lesion_ms -i t2.nii.gz -qc ~/qc_singleSubj -qc-seg t2_seg.nii.gz -single-fold
-# As well as a segmentation command tailored to MP2RAGE MS lesions
-# sct_deepseg lesion_ms_mp2rage -i t2.nii.gz -qc ~/qc_singleSubj
 
 # Compute various morphometric measures, such as number of lesions, lesion length, lesion volume, etc.
 sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSubj
