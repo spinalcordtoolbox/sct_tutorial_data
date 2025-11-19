@@ -64,7 +64,7 @@ sct_deepseg -h
 # ======================================================================================================================
 
 # Vertebral disc labeling
-sct_deepseg totalspineseg -step1-only -i t2.nii.gz -qc ~/qc_singleSubj
+sct_deepseg totalspineseg -step1-only 1 -i t2.nii.gz -qc ~/qc_singleSubj
 
 # Full spinal segmentation (Vertebrae, Intervertebral discs, Spinal cord and Spinal canal)
 # Segment using totalspineseg
