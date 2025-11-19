@@ -423,7 +423,8 @@ sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -qc ~/qc_singleSu
 # Lesion analysis using PAM50 (the -f flag is used to specify the folder containing the atlas/template)
 # Note: You must go through the "Register to Template" steps (labeling, registration) first
 #       This is because `sct_warp_template` is required to generate the `label` folder used for `-f`
-# sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label -qc ~/qc_singleSubj
+sct_warp_template -d t2.nii.gz -w ../t2/warp_template2anat.nii.gz
+sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label -qc ~/qc_singleSubj
 
 # Segment the spinal cord on gradient echo EPI data
 cd ../fmri/
