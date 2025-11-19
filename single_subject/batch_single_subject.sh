@@ -243,7 +243,7 @@ sct_register_to_template -i t2_lumbar.nii.gz -s t2_lumbar_seg.nii.gz -ldisc t2_l
 # Go to T2*-weighted data, which has good GM/WM contrast and high in-plane resolution
 cd ../t2s
 # Segment gray matter (check QC report afterwards)
-sct_deepseg_gm -i t2s.nii.gz -qc ~/qc_singleSubj
+sct_deepseg graymatter -i t2s.nii.gz -qc ~/qc_singleSubj
 # Spinal cord segmentation
 sct_deepseg spinalcord -i t2s.nii.gz -qc ~/qc_singleSubj
 # Subtract GM segmentation from cord segmentation to obtain WM segmentation
