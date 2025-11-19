@@ -253,7 +253,7 @@ sct_deepseg spinalcord -i t2s.nii.gz -qc ~/qc_singleSubj
 # Note that we use the flag -thr 0 in case some voxels in the GM segmentation are *not* included in the cord
 # segmentation. That would results in voxels in the WM segmentation having the value “-1”, which would cause issues
 # with the registration. 
-sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -thr 0 -o t2s_wmseg.nii.gz
+sct_maths -i t2s_seg.nii.gz -sub t2s_gm_seg.nii.gz -thr 0 -o t2s_wm_seg.nii.gz
 
 
 
@@ -263,15 +263,15 @@ sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -thr 0 -o t2s_wmseg.nii.gz
 # Compute cross-sectional area (CSA) of the gray and white matter for all slices in the volume.
 # Note: Here we use the flag -angle-corr 0, because we do not want to correct the computed CSA by the cosine of the
 # angle between the cord centerline and the S-I axis: we assume that slices were acquired orthogonally to the cord.
-sct_process_segmentation -i t2s_wmseg.nii.gz -o csa_wm.csv -perslice 1 -angle-corr 0
-sct_process_segmentation -i t2s_gmseg.nii.gz -o csa_gm.csv -perslice 1 -angle-corr 0
+sct_process_segmentation -i t2s_wm_seg.nii.gz -o csa_wm.csv -perslice 1 -angle-corr 0
+sct_process_segmentation -i t2s_gm_seg.nii.gz -o csa_gm.csv -perslice 1 -angle-corr 0
 
 # You can also use the binary masks to extract signal intensity from MRI data.
 # The example below will show how to use the GM and WM segmentations to quantify T2* signal intensity, as done in
 # [Martin et al. PLoS One 2018].
 # Quantify average WM and GM signal between slices 2 and 12.
-sct_extract_metric -i t2s.nii.gz -f t2s_wmseg.nii.gz -method bin -z 2:12 -o t2s_value.csv
-sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_value.csv -append 1
+sct_extract_metric -i t2s.nii.gz -f t2s_wm_seg.nii.gz -method bin -z 2:12 -o t2s_value.csv
+sct_extract_metric -i t2s.nii.gz -f t2s_gm_seg.nii.gz -method bin -z 2:12 -o t2s_value.csv -append 1
 # Note: the flag -append enables to append a new result at the end of an already-existing csv file.
 
 
@@ -281,7 +281,7 @@ sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_
 
 # Register template->t2s (using warping field generated from template<->t2 registration)
 # Tips: Here we use the WM seg for the iseg/dseg fields in order to account for both the cord and the GM shape.
-sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_wm.nii.gz -d t2s.nii.gz -dseg t2s_wmseg.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2t2s.nii.gz -owarpinv warp_t2s2template.nii.gz -param step=1,type=seg,algo=rigid:step=2,type=seg,metric=CC,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,metric=CC,algo=syn,slicewise=1,iter=2 -qc ~/qc_singleSubj
+sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_wm.nii.gz -d t2s.nii.gz -dseg t2s_wm_seg.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2t2s.nii.gz -owarpinv warp_t2s2template.nii.gz -param step=1,type=seg,algo=rigid:step=2,type=seg,metric=CC,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,metric=CC,algo=syn,slicewise=1,iter=2 -qc ~/qc_singleSubj
 # Warp template
 sct_warp_template -d t2s.nii.gz -w warp_template2t2s.nii.gz -qc ~/qc_singleSubj
 
