@@ -15,8 +15,8 @@ name: "Run sct_run_batch -s process_data.sh"
 #        - 'sct_course_data.zip': Files required to run the SCT course from start to finish.
 #        - 'registration.zip', 'segmentation.zip', etc.: Files required by individual tutorials.
 
-#on:
-#  pull_request:
+on:
+  pull_request:
 
 jobs:
   run-course-script:

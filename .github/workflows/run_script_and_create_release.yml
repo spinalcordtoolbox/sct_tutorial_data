@@ -19,7 +19,7 @@ on:
   push:
     branches:
       - master
-#  pull_request:
+  pull_request:
   workflow_dispatch:
     inputs:
       release_title:
