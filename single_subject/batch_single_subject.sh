@@ -140,7 +140,7 @@ sct_qc -i t2.nii.gz -s t2_labels_vert.nii.gz -p sct_label_utils -qc ~/qc_singleS
 # OPTIONAL: You might want to completely bypass sct_label_vertebrae and do the labeling manually. In that case, we
 # provide a viewer to do so conveniently. In the example command below, we will create labels at the inter-vertebral
 # discs C2-C3 (value=3), C3-C4 (value=4) and C4-C5 (value=5).
-#sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
+# sct_label_utils -i t2.nii.gz -create-viewer 3,4,5 -o labels_disc.nii.gz -msg "Place labels at the posterior tip of each inter-vertebral disc. E.g. Label 3: C2/C3, Label 4: C3/C4, etc."
 
 # Register t2->template.
 sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -ldisc t2_labels_vert.nii.gz -c t2 -qc ~/qc_singleSubj
