@@ -77,15 +77,6 @@ fsleyes t2.nii.gz -cm greyscale t2_step1_canal.nii.gz -cm YlOrRd -a 70.0 t2_step
 sct_label_utils -i t2_seg.nii.gz -project-centerline t2_step1_levels.nii.gz -o t2_seg_labeled.nii.gz
 
 
-# Note: Here, two files are output: t2_seg_labeled, which represents the labeled segmentation (i.e., the value
-#       corresponds to the vertebral level), and t2_seg_labeled_discs, which only has a single point for each
-#       inter-vertebral disc level. The convention is: Value 3 —> C2-C3 disc, Value 4 —> C3-C4 disc, etc.
-
-# OPTIONAL: If automatic labeling did not work, you can initialize with manual identification of C2-C3 disc:
-#sct_label_utils -i t2.nii.gz -create-viewer 3 -o label_c2c3.nii.gz -msg "Click at the posterior tip of C2/C3 inter-vertebral disc"
-#sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -initlabel label_c2c3.nii.gz -qc ~/qc_singleSubj
-
-
 
 # Shape-based analysis
 # ======================================================================================================================
