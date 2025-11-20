@@ -72,6 +72,11 @@ sct_deepseg totalspineseg -i t2.nii.gz -qc ~/qc_singleSubj
 # Check results using FSLeyes
 fsleyes t2.nii.gz -cm greyscale t2_step1_canal.nii.gz -cm YlOrRd -a 70.0 t2_step1_cord.nii.gz -cm YlOrRd -a 70.0 t2_step1_levels.nii.gz -cm subcortical -a 70.0 t2_step1_output.nii.gz -cm subcortical -a 70.0 t2_step2_output.nii.gz -cm subcortical -a 70.0 &
 # Check QC report: Go to your browser and do "refresh".
+
+# Optionally, you can use the generated disc labels to create a labeled segmentation
+sct_label_utils -i t2_seg.nii.gz -project-centerline t2_step1_levels.nii.gz -o t2_seg_labeled.nii.gz
+
+
 # Note: Here, two files are output: t2_seg_labeled, which represents the labeled segmentation (i.e., the value
 #       corresponds to the vertebral level), and t2_seg_labeled_discs, which only has a single point for each
 #       inter-vertebral disc level. The convention is: Value 3 —> C2-C3 disc, Value 4 —> C3-C4 disc, etc.
