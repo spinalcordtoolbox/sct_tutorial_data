@@ -64,17 +64,17 @@ sct_deepseg -h
 # ======================================================================================================================
 
 # Vertebral disc labeling
-sct_deepseg totalspineseg -step1-only 1 -i t2.nii.gz -qc ~/qc_singleSubj
+sct_deepseg spine -i t2.nii.gz -label-vert 1 -qc ~/qc_singleSubj
 
 # Full spinal segmentation (Vertebrae, Intervertebral discs, Spinal cord and Spinal canal)
 # Segment using totalspineseg
-sct_deepseg totalspineseg -i t2.nii.gz -qc ~/qc_singleSubj
+sct_deepseg spine -i t2.nii.gz -qc ~/qc_singleSubj
 # Check results using FSLeyes
-fsleyes t2.nii.gz -cm greyscale t2_step1_canal.nii.gz -cm YlOrRd -a 70.0 t2_step1_cord.nii.gz -cm YlOrRd -a 70.0 t2_step1_levels.nii.gz -cm subcortical -a 70.0 t2_step1_output.nii.gz -cm subcortical -a 70.0 t2_step2_output.nii.gz -cm subcortical -a 70.0 &
+fsleyes t2.nii.gz -cm greyscale t2_step1_canal.nii.gz -cm YlOrRd -a 70.0 t2_step1_cord.nii.gz -cm YlOrRd -a 70.0 t2_totalspineseg_discs.nii.gz -cm subcortical -a 70.0 t2_step1_output.nii.gz -cm subcortical -a 70.0 t2_step2_output.nii.gz -cm subcortical -a 70.0 &
 # Check QC report: Go to your browser and do "refresh".
 
 # Optionally, you can use the generated disc labels to create a labeled segmentation
-sct_label_utils -i t2_seg.nii.gz -project-centerline t2_step1_levels.nii.gz -o t2_seg_labeled.nii.gz
+sct_label_utils -i t2_seg.nii.gz -project-centerline t2_totalspineseg_discs.nii.gz -o t2_seg_labeled.nii.gz
 
 
 
@@ -82,11 +82,11 @@ sct_label_utils -i t2_seg.nii.gz -project-centerline t2_step1_levels.nii.gz -o t
 # ======================================================================================================================
 
 # Compute cross-sectional area (CSA) of spinal cord and average it across levels C3 and C4
-sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -discfile t2_step1_levels.nii.gz -o csa_c3c4.csv
+sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -discfile t2_totalspineseg_discs.nii.gz -o csa_c3c4.csv
 # Aggregate CSA value per level
-sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -discfile t2_step1_levels.nii.gz -perlevel 1 -o csa_perlevel.csv
+sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -discfile t2_totalspineseg_discs.nii.gz -perlevel 1 -o csa_perlevel.csv
 # Aggregate CSA value per slices
-sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -discfile t2_step1_levels.nii.gz -perslice 1 -o csa_perslice.csv
+sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -discfile t2_totalspineseg_discs.nii.gz -perslice 1 -o csa_perslice.csv
 
 # A drawback of vertebral level-based CSA is that it doesn’t consider neck flexion and extension.
 # To overcome this limitation, the CSA can instead be computed using the distance to a reference point.
@@ -98,7 +98,7 @@ sct_process_segmentation -i t2_seg.nii.gz -pmj t2_pmj.nii.gz -pmj-distance 64 -p
 
 # The above commands will output the metrics in the subject space (with the original image's slice numbers)
 # However, you can get the corresponding slice number in the PAM50 space by using the flag `-normalize-PAM50 1`
-sct_process_segmentation -i t2_seg.nii.gz -discfile t2_step1_levels.nii.gz -perslice 1 -normalize-PAM50 1 -o csa_PAM50.csv
+sct_process_segmentation -i t2_seg.nii.gz -discfile t2_totalspineseg_discs.nii.gz -perslice 1 -normalize-PAM50 1 -o csa_PAM50.csv
 
 
 
@@ -129,7 +129,7 @@ sct_compute_compression -i t2_compressed_seg.nii.gz -vertfile t2_compressed_seg_
 cd ../t2
 
 # Create labels at C3 and T2 mid-vertebral levels. These labels are needed for template registration.
-sct_label_utils -i t2_step1_levels.nii.gz -keep 3,9 -o t2_labels_vert.nii.gz
+sct_label_utils -i t2_totalspineseg_discs.nii.gz -keep 3,9 -o t2_labels_vert.nii.gz
 # Generate a QC report to visualize the two selected labels on the anatomical image
 sct_qc -i t2.nii.gz -s t2_labels_vert.nii.gz -p sct_label_utils -qc ~/qc_singleSubj
 
@@ -146,7 +146,7 @@ sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -ldisc t2_labels_vert.nii
 sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -ldisc t2_labels_vert.nii.gz -qc ~/qc_singleSubj -ofolder advanced_param -c t2 -param step=1,type=seg,algo=rigid:step=2,type=seg,metric=CC,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,metric=CC,algo=syn,slicewise=1,iter=2
 
 # Register t2->template with large FOV (e.g. C2-L1) using `-ldisc` option
-# sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -ldisc t2_step1_levels.nii.gz -c t2
+# sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -ldisc t2_totalspineseg_discs.nii.gz -c t2
 
 # Register t2->template in compressed cord (example command)
 # In case of highly compressed cord, the algo columnwise can be used, which allows for more deformation than bsplinesyn.
