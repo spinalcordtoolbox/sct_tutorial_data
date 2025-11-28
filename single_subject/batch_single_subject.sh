@@ -74,7 +74,9 @@ fsleyes t2.nii.gz -cm greyscale t2_step1_canal.nii.gz -cm YlOrRd -a 70.0 t2_step
 # Check QC report: Go to your browser and do "refresh".
 
 # Optionally, you can use the generated disc labels to create a labeled segmentation
-sct_label_utils -i t2_seg.nii.gz -project-centerline t2_totalspineseg_discs.nii.gz -o t2_seg_labeled.nii.gz
+# Note: This approach is no longer recommended. Instead, use the disc labels directly in subsequent commands (e.g. `sct_process_segmentation`).
+sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -discfile t2_totalspineseg_discs.nii.gz
+# FIXME: Remove this command once the web tutorials are updated to no longer use labeled segmentations
 
 
 
