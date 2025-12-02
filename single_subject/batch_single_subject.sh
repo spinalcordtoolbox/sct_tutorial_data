@@ -426,7 +426,10 @@ sct_analyze_lesion -m t2_lesion_seg.nii.gz -s t2_sc_seg.nii.gz -f label -qc ~/qc
 
 # Segment the spinal cord on gradient echo EPI data
 cd ../fmri/
-sct_deepseg sc_epi -i fmri_moco_mean.nii.gz -qc ~/qc_singleSubj
+# Crop extraneous tissue using the t2-based mask generated earlier
+sct_crop_image -i fmri_moco_mean.nii.gz -m mask_fmri.nii.gz -b 0
+# Segment the cord using the cropped image
+sct_deepseg sc_epi -i fmri_moco_mean_crop.nii.gz -qc ~/qc_singleSubj
 
 # Canal segmentation
 cd ../t2
