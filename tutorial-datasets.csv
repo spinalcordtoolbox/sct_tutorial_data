@@ -8,7 +8,7 @@ data_normalizing-morphometrics-compression,single_subject/data/t2_compression/t2
 data_normalizing-morphometrics-compression,single_subject/data/t2_compression/t2_compressed_seg_labeled.nii.gz
 data_normalizing-morphometrics-compression,single_subject/data/t2_compression/t2_compressed_labels-compression.nii.gz
 data_lesion-analysis,single_subject/data/t2_lesion/t2.nii.gz
-data_ms-lesion-segmentation,single_subject,single_subject/data/t2_ms/t2.nii.gz
+data_ms-lesion-segmentation,single_subject/data/t2_ms/t2.nii.gz
 data_template-registration,single_subject/data/t2/t2.nii.gz
 data_template-registration,single_subject/data/t2/t2_seg.nii.gz
 data_template-registration,single_subject/data/t2/t2_labels_vert.nii.gz
