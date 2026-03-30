@@ -84,24 +84,9 @@ sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -discfile t2_totalspines
 # ======================================================================================================================
 
 # Compute cross-sectional area (CSA) of spinal cord and average it across levels C3 and C4
-sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -discfile t2_totalspineseg_discs.nii.gz -o csa_c3c4.csv
-
-#######################################################################################################################
-# FIXME: Metric 1/8: [t2/csa_c2c3.csv-0-MEAN(area)]
-# Notes:
-#   - We have a corresponding command that computes `csa_c3c4.csv` (see above).
-#      - The above `batch_single_subject.sh` command uses the disc labels directly.
-#      - By comparison, the old `batch_processing.sh` commands rely on the the warped template (registered using the vert labels)
-#   - In summary, the old metric values we are testing are wholly incompatible with our current up-to-date pipelines.
-sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2
-sct_label_utils -i t2_seg_labeled.nii.gz -vert-body 2,5 -o labels_vert.nii.gz
-sct_register_to_template -i t2.nii.gz -s t2_seg.nii.gz -l labels_vert.nii.gz -c t2
-sct_warp_template -d t2.nii.gz -w warp_template2anat.nii.gz -a 0
-sct_process_segmentation -i t2_seg.nii.gz -vert 2:3 -o csa_c2c3.csv
-#######################################################################################################################
-
+sct_process_segmentation -i t2_seg.nii.gz -vert 2:3 -discfile t2_totalspineseg_discs.nii.gz -o csa_c2c3.csv
 # Aggregate CSA value per level (including new anat-based symmetry metrics)
-sct_process_segmentation -i t2_seg.nii.gz -anat t2.nii.gz -vert 3:4 -discfile t2_totalspineseg_discs.nii.gz -perlevel 1 -o csa_perlevel.csv
+sct_process_segmentation -i t2_seg.nii.gz -anat t2.nii.gz -vert 2:3 -discfile t2_totalspineseg_discs.nii.gz -perlevel 1 -o csa_perlevel.csv
 # Aggregate CSA value per slices
 sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -discfile t2_totalspineseg_discs.nii.gz -perslice 1 -o csa_perslice.csv
 
@@ -111,30 +96,12 @@ sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -discfile t2_totalspineseg_di
 # of the spinal cord will vary depending on the position of the neck.
 sct_detect_pmj -i t2.nii.gz -c t2 -qc ~/qc_singleSubj
 # Check the QC to make sure PMJ was properly detected, then compute CSA using the distance from the PMJ:
-sct_process_segmentation -i t2_seg.nii.gz -pmj t2_pmj.nii.gz -pmj-distance 64 -pmj-extent 30 -o csa_pmj.csv -qc ~/qc_singleSubj -qc-image t2.nii.gz
-
-#######################################################################################################################
-# FIXME: Metric 2/8: [t2/csa_pmj.csv-0-MEAN(area)]
-# Notes:
-#   - We have a corresponding command that computes `csa_pmj.csv` (see above).
-#   - There is only a small discrepancy in `-pmj-distance`, and this is easily fixable.
-sct_process_segmentation -i t2_seg.nii.gz -pmj t2_pmj.nii.gz -pmj-distance 60 -pmj-extent 30 -o csa_pmj.csv
-#######################################################################################################################
+sct_process_segmentation -i t2_seg.nii.gz -pmj t2_pmj.nii.gz -pmj-distance 60 -pmj-extent 30 -o csa_pmj.csv -qc ~/qc_singleSubj -qc-image t2.nii.gz
 
 # The above commands will output the metrics in the subject space (with the original image's slice numbers)
 # However, you can get the corresponding slice number in the PAM50 space by using the flag `-normalize-PAM50 1`
-sct_process_segmentation -i t2_seg.nii.gz -discfile t2_totalspineseg_discs.nii.gz -perslice 1 -normalize-PAM50 1 -o csa_PAM50.csv
+sct_process_segmentation -i t2_seg.nii.gz -discfile t2_totalspineseg_discs.nii.gz -perslice 1 -normalize-PAM50 1 -o csa_pam50.csv
 
-#######################################################################################################################
-# FIXME: Metric 3/8: [t2/csa_pam50.csv-38-MEAN(area)]
-# Notes:
-#   - We have a corresponding command that computes `csa_pam50.csv` (see above).
-#     - The above `batch_single_subject.sh` command uses the disc labels directly.
-#     - By comparison, the old `batch_processing.sh` commands relies on the `sct_label_vertebrae` seg for `-vertfile`.
-#   - In summary, the old metric values we are testing are wholly incompatible with our current up-to-date pipelines.
-sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2
-sct_process_segmentation -i t2_seg.nii.gz -vertfile t2_seg_labeled.nii.gz -perslice 1 -normalize-PAM50 1 -o csa_pam50.csv
-#######################################################################################################################
 
 
 # Quantifying spinal cord compression using maximum spinal cord compression (MSCC) and normalizing with database of healthy controls
@@ -157,78 +124,6 @@ sct_compute_compression -i t2_compressed_seg.nii.gz -vertfile t2_compressed_seg_
 # Compute ratio of AP diameter, normalized with healthy controls using `-normalize-hc 1`.
 sct_compute_compression -i t2_compressed_seg.nii.gz -vertfile t2_compressed_seg_labeled.nii.gz -l t2_compressed_labels-compression.nii.gz -metric diameter_AP -normalize-hc 1 -o ap_ratio_norm_PAM50.csv
 
-# NB: All 5 of the metrics below use the T2 registration to template as an `-initwarp` step. This means that to reproduce
-#     the old batch_processing.sh values, we need to use the old T2 warping fields, too. (See: "Metric 1/8" for the steps)
-#     It's totally possible to move these commands to _after_ the revamped T2 registration step, but the values will be off:
-#       - https://github.com/spinalcordtoolbox/sct_tutorial_data/commit/84139952c531ada90a901d9612ff7a8070bcc02f
-#       - https://github.com/spinalcordtoolbox/spinalcordtoolbox/actions/runs/22780277293/job/67453420618?pr=5185
-
-#######################################################################################################################
-# FIXME: Metric 4/8: [t2s/csa_gm.csv-3-MEAN(area)]
-# FIXME: Metric 5/8: [t2s/csa_wm.csv-3-MEAN(area)]
-# Notes:
-#   - We have corresponding commands that compute the GM/WM (see GM sections later on).
-#     - For `batch_single_subject.sh`, we use the new `graymatter` method, and register using the WM seg with updated params.
-#     - For `batch_processing.sh`, we use the old `sct_deepseg_gm` method, and register using the GM seg with outdated params.
-cd ../t2s
-sct_deepseg spinalcord -i t2s.nii.gz -qc ~/qc_singleSubj
-sct_deepseg_gm -i t2s.nii.gz
-sct_maths -i t2s_seg.nii.gz -sub t2s_gmseg.nii.gz -o t2s_wmseg.nii.gz
-#   - We also have corresponding commands that compute the `csa_wm.csv`/`csa_gm.csv` (see above).
-#     - For `batch_single_subject.sh`, we compute `-perslice 1` directly on the segmentation file.
-#     - For `batch_processing.sh`, we compute `-perlevel 1` using the warped template.
-#   - In summary, the old metric values we are testing are wholly incompatible with our current up-to-date pipelines.
-sct_register_multimodal -i "$SCT_DIR/data/PAM50/template/PAM50_t2s.nii.gz" -iseg "$SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz" -d t2s.nii.gz -dseg t2s_seg.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,algo=syn,slicewise=1,iter=1,metric=CC -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2t2s.nii.gz -owarpinv warp_t2s2template.nii.gz
-sct_warp_template -d t2s.nii.gz -w warp_template2t2s.nii.gz
-sct_process_segmentation -i t2s_gmseg.nii.gz -vert 2:5 -perlevel 1 -o csa_gm.csv -centerline t2s_seg.nii.gz
-sct_process_segmentation -i t2s_wmseg.nii.gz -vert 2:5 -perlevel 1 -o csa_wm.csv -centerline t2s_seg.nii.gz
-#######################################################################################################################
-
-#######################################################################################################################
-# FIXME: Metric 6/8: [mt/mtr_in_wm.csv-0-MAP()]
-# Notes:
-#   - We have corresponding commands to compute the MTR (see MT sections later on).
-#      - For `batch_single_subject.sh`, the mask is used directly for the `-m` argument of `sct_register_multimodal`.
-#      - For `batch_processing.sh`, however, the mask is used to crop the image prior to registration.
-cd ../mt
-sct_get_centerline -i mt1.nii.gz -c t2
-sct_create_mask -i mt1.nii.gz -p centerline,mt1_centerline.nii.gz -size 45mm
-sct_crop_image -i mt1.nii.gz -m mask_mt1.nii.gz -o mt1_crop.nii.gz
-sct_deepseg spinalcord -i mt1_crop.nii.gz
-sct_register_multimodal -i mt0.nii.gz -d mt1_crop.nii.gz -dseg mt1_crop_seg.nii.gz -param step=1,type=im,algo=slicereg,metric=CC -x spline
-sct_compute_mtr -mt0 mt0_reg.nii.gz -mt1 mt1_crop.nii.gz
-#   - We also have corresponding commands that compute the `mtr_in_wm.csv` file
-#      - For `batch_single_subject.sh`, we A) use the mask during registration to template, B) we use the t2s for initwarp, and C) we don't aggregate the levels at all.
-#      - For `batch_processing.sh`, however, A) use the cropped image during template registration, B) we use the t2 for initwarp, and C) we aggregate the MTR values across levels 2 to 5.
-#   - In summary, the old metric values we are testing are wholly incompatible with our current up-to-date pipelines.
-sct_register_multimodal -i "$SCT_DIR/data/PAM50/template/PAM50_t2.nii.gz" -iseg "$SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz" -d mt1_crop.nii.gz -dseg mt1_crop_seg.nii.gz -param step=1,type=seg,algo=slicereg,smooth=3:step=2,type=seg,algo=bsplinesyn,slicewise=1,iter=3 -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2mt.nii.gz -owarpinv warp_mt2template.nii.gz
-sct_warp_template -d mt1_crop.nii.gz -w warp_template2mt.nii.gz
-sct_extract_metric -i mtr.nii.gz -method map -o mtr_in_wm.csv -l 51 -vert 2:5
-#######################################################################################################################
-
-#######################################################################################################################
-# FIXME: Metric 7/8: [dmri/fa_in_cst.csv-0-WA()]
-# FIXME: Metric 8/8: [dmri/fa_in_cst.csv-1-WA()]
-#   - We have corresponding commands to compute the mask for motion correction (see dMRI sections later on).
-#     - For `batch_single_subject.sh`, we currently segment the dMRI cord directly, then dilate it.
-#     - For `batch_processing.sh`, we warp the T2 seg, then create the mask from that.
-cd ../dmri
-sct_dmri_separate_b0_and_dwi -i dmri.nii.gz -bvec bvecs.txt
-sct_register_multimodal -i ../t2/t2_seg.nii.gz -d dmri_dwi_mean.nii.gz -identity 1 -x nn
-sct_create_mask -i dmri_dwi_mean.nii.gz -p centerline,t2_seg_reg.nii.gz -size 35mm
-#   - We also have corresponding commands to warp the template to the motion-corrected sequence (see dMRI sections later on).
-#     - The process is basically the same (apart from the differing masks)
-sct_dmri_moco -i dmri.nii.gz -bvec bvecs.txt -m mask_dmri_dwi_mean.nii.gz
-sct_deepseg spinalcord -i dmri_moco_dwi_mean.nii.gz
-sct_qc -i dmri.nii.gz -d dmri_moco.nii.gz -s dmri_moco_dwi_mean_seg.nii.gz -p sct_dmri_moco
-sct_register_multimodal -i "$SCT_DIR/data/PAM50/template/PAM50_t1.nii.gz" -iseg "$SCT_DIR/data/PAM50/template/PAM50_cord.nii.gz" -d dmri_moco_dwi_mean.nii.gz -dseg dmri_moco_dwi_mean_seg.nii.gz -param step=1,type=seg,algo=centermass:step=2,type=seg,algo=bsplinesyn,metric=MeanSquares,smooth=1,iter=3 -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2dmri.nii.gz -owarpinv warp_dmri2template.nii.gz
-sct_warp_template -d dmri_moco_dwi_mean.nii.gz -w warp_template2dmri.nii.gz
-#   - Lastly, we also have a corresponding command to extract DTI metrics (see dMRI sections later on).
-#     - For `batch_single_subject.sh`, we compute FA in the WM aggregated across levels.
-#     - For `batch_processing.sh`, we compute FA in the CST, aggregated across slices.
-sct_dmri_compute_dti -i dmri_moco.nii.gz -bval bvals.txt -bvec bvecs.txt
-sct_extract_metric -i dti_FA.nii.gz -z 2:14 -method wa -l 4,5 -o fa_in_cst.csv
-#######################################################################################################################
 
 
 # Registration to template
@@ -387,6 +282,9 @@ sct_extract_metric -i t2s.nii.gz -f t2s_gmseg.nii.gz -method bin -z 2:12 -o t2s_
 sct_register_multimodal -i "${SCT_DIR}"/data/PAM50/template/PAM50_t2s.nii.gz -iseg "${SCT_DIR}"/data/PAM50/template/PAM50_wm.nii.gz -d t2s.nii.gz -dseg t2s_wmseg.nii.gz -initwarp ../t2/warp_template2anat.nii.gz -initwarpinv ../t2/warp_anat2template.nii.gz -owarp warp_template2t2s.nii.gz -owarpinv warp_t2s2template.nii.gz -param step=1,type=seg,algo=rigid:step=2,type=seg,metric=CC,algo=bsplinesyn,slicewise=1,iter=3:step=3,type=im,metric=CC,algo=syn,slicewise=1,iter=2 -qc ~/qc_singleSubj
 # Warp template
 sct_warp_template -d t2s.nii.gz -w warp_template2t2s.nii.gz -qc ~/qc_singleSubj
+# Compute vertebral level-based metrics using warped template (needed for the template's vertlevel file)
+sct_process_segmentation -i t2s_gmseg.nii.gz -vert 2:5 -perlevel 1 -o csa_gm.csv -centerline t2s_seg.nii.gz -centerline-exclude-missing 1
+sct_process_segmentation -i t2s_wmseg.nii.gz -vert 2:5 -perlevel 1 -o csa_wm.csv -centerline t2s_seg.nii.gz -centerline-exclude-missing 1
 
 # Register another metric while reusing newly-created GM-informed warping fields
 cd ../mt
@@ -404,13 +302,14 @@ fsleyes mt1.nii.gz -cm greyscale -a 100.0 label/template/PAM50_t2.nii.gz -cm gre
 
 # Extract MTR for each slice within the white matter (combined label: #51)
 # Tips: To list all available labels, type: "sct_extract_metric"
-sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 51 -o mtr_in_wm_perslice.csv
+sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 51 -vert 2:5 -o mtr_in_wm.csv
 
 # Extract MTR within the right and left corticospinal tract and aggregate across specific slices
 sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 4,5 -z 5:15 -o mtr_in_cst.csv
 # You can specify the vertebral levels to extract MTR from. For example, to quantify MTR between C2 and C4 levels in the
 # dorsal column (combined label: #53) using weighted average:
 sct_extract_metric -i mtr.nii.gz -f label/atlas -method map -l 53 -vert 2:4 -vertfile label/template/PAM50_levels.nii.gz -o mtr_in_dc.csv
+
 
 
 # Diffusion-weighted MRI
@@ -449,6 +348,9 @@ sct_dmri_compute_dti -i dmri_moco.nii.gz -bval bvals.txt -bvec bvecs.txt
 
 # Compute FA within the white matter from individual level 2 to 5
 sct_extract_metric -i dti_FA.nii.gz -f label/atlas -l 51 -method map -vert 2:5 -vertfile label/template/PAM50_levels.nii.gz -perlevel 1 -o fa_in_wm.csv
+# Compute FA within the CST, aggregated across z slices, using the weighted average method
+sct_extract_metric -i dti_FA.nii.gz -f label/atlas -l 4,5 -method wa -z 2:14 -o fa_in_cst.csv
+
 
 
 # Functional MRI
