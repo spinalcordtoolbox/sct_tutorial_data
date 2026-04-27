@@ -1,8 +1,9 @@
 data_spinalcord-segmentation,single_subject/data/t2/t2.nii.gz
 data_vertebral-labeling,single_subject/data/t2/t2.nii.gz
 data_vertebral-labeling,single_subject/data/t2/t2_seg.nii.gz
+data_shape-metric-computation,single_subject/data/t2/t2.nii.gz
 data_shape-metric-computation,single_subject/data/t2/t2_seg.nii.gz
-data_shape-metric-computation,single_subject/data/t2/t2_seg_labeled.nii.gz
+data_shape-metric-computation,single_subject/data/t2/t2_totalspineseg_discs.nii.gz
 data_compression,single_subject/data/t2_compression/t2_compressed.nii.gz
 data_normalizing-morphometrics-compression,single_subject/data/t2_compression/t2_compressed_seg.nii.gz
 data_normalizing-morphometrics-compression,single_subject/data/t2_compression/t2_compressed_seg_labeled.nii.gz
