@@ -163,6 +163,15 @@ def process_csa_perlevel(ci_root: Path, tutorials_root: Path) -> None:
                    "MEAN(solidity)", "STD(solidity)", "SUM(length)"],
         conditional_vertlevel=True,
     )
+    process(
+        ci_root / "t2/csa_perlevel.csv",
+        out / "other-shape-metrics-3.csv",
+        keep_cols=["Filename", "Slice (I->S)", "VertLevel",
+                   "MEAN(area_quadrant_anterior_left)", "MEAN(area_quadrant_anterior_right)",
+                   "MEAN(symmetry_dice_RL)", "MEAN(symmetry_dice_AP)",
+                   "MEAN(symmetry_hausdorff_RL)", "MEAN(symmetry_hausdorff_AP)"],
+        conditional_vertlevel=True,
+    )
 
 
 def process_csa_perslice(ci_root: Path, tutorials_root: Path) -> None:
