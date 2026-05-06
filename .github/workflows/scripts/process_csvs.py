@@ -5,22 +5,22 @@ Usage:
     python process_csvs.py [--input-dir DIR] [--output-dir DIR]
 
     --input-dir  Root of the CI-downloaded CSV tree.
-                 Default: ./Single Subject CSV Files/ (relative to CWD)
+                 Default: ./csvs/ (relative to CWD)
     --output-dir Root of the tutorials documentation tree.
                  Default: $SCT_DIR/documentation/source/user_section/tutorials/
 
-What this script does
----------------------
-For each known input CSV it: selects a subset of columns, optionally drops
-VertLevel when it contains no meaningful data, strips the absolute path prefix
-from the Filename column, optionally renames columns, and writes the result to
-its corresponding tutorial documentation path.
+Instructions:
 
-The Slice (I->S) values in the documentation CSV may differ from the input CSV
-because SCT sometimes regenerates slightly different slice ranges between runs.
-This script does NOT attempt to normalise those — it simply carries the input
-value through unchanged. Update the documentation manually if the slice range
-matters for the tutorial narrative.
+1. Run the CI for `sct_tutorial_data`.
+2. Navigate to the latest runs of the CI:
+    - https://github.com/spinalcordtoolbox/sct_tutorial_data/actions/workflows/run_script_and_create_release.yml
+    - https://github.com/spinalcordtoolbox/sct_tutorial_data/actions/workflows/run_batch_script.yml
+3. Fetch the zips containing the metric CSVs for both runs.
+4. Create a folder and put both extracted zips into the folder. It should look like:
+    - ./csvs/Single Subject CSV Files/... (t2, dmri, etc.)
+    - ./csvs/Multi Subject CSV Files/results/... (CSA.csv, MTR_in_DC.csv)
+5. Run this script, making sure to point `--input-dir` at the right directory.
+6. Commit the updated CSV files (in the docs dir) to your PR.
 """
 
 import argparse
@@ -29,7 +29,6 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-
 
 FILENAME_ANCHOR = "sct_tutorial_data/"
 
@@ -61,6 +60,8 @@ def process(
     keep_cols: list[str],
     rename_cols: dict[str, str] | None = None,
     conditional_vertlevel: bool = False,
+    head: int = -1,
+    tail: int = -1,
 ) -> None:
     df = pd.read_csv(input_path)
 
@@ -77,6 +78,11 @@ def process(
         )
 
     df = df[keep_cols].copy()
+
+    if head >= 0 and tail >= 0 and len(df) > head + tail:
+        sentinel = pd.DataFrame([["..."] + [float("nan")] * (len(keep_cols) - 1)],
+                                columns=keep_cols)
+        df = pd.concat([df.iloc[:head], sentinel, df.iloc[-tail:]], ignore_index=True)
 
     if "Filename" in df.columns:
         df["Filename"] = strip_filename_prefix(df["Filename"])
@@ -205,13 +211,6 @@ def process_mtr_in_dc(ci_root: Path, tutorials_root: Path) -> None:
         keep_cols=["Slice (I->S)", "VertLevel", "Label", "Size [vox]", "MAP()", "STD()"],
         conditional_vertlevel=True,
     )
-    # analysis-pipelines output: includes Filename column
-    process(
-        ci_root / "mt/mtr_in_dc.csv",
-        tutorials_root / "analysis-pipelines-with-sct/MTR_in_DC.csv",
-        keep_cols=["Filename", "Slice (I->S)", "VertLevel", "Label", "Size [vox]", "MAP()", "STD()"],
-        conditional_vertlevel=True,
-    )
 
 
 def process_mtr_in_wm(ci_root: Path, tutorials_root: Path) -> None:
@@ -220,6 +219,8 @@ def process_mtr_in_wm(ci_root: Path, tutorials_root: Path) -> None:
         tutorials_root / "atlas-based-analysis/mtr_in_wm.csv",
         keep_cols=["Slice (I->S)", "VertLevel", "Label", "Size [vox]", "MAP()", "STD()"],
         conditional_vertlevel=True,
+        head=7,
+        tail=2
     )
 
 
@@ -232,23 +233,45 @@ def process_t2s_value(ci_root: Path, tutorials_root: Path) -> None:
     )
 
 
+def process_multi_subject(ci_root: Path, tutorials_root: Path) -> None:
+    process(
+        ci_root / "results/CSA.csv",
+        tutorials_root / "analysis-pipelines-with-sct/CSA.csv",
+        keep_cols=["Filename", "Slice (I->S)", "VertLevel", "MEAN(area)", "STD(area)"],
+        conditional_vertlevel=True
+    )
+    process(
+        ci_root / "results/MTR_in_DC.csv",
+        tutorials_root / "analysis-pipelines-with-sct/MTR_in_DC.csv",
+        keep_cols=["Filename", "Slice (I->S)", "VertLevel", "Label", "Size [vox]", "MAP()", "STD()"],
+        conditional_vertlevel=True
+    )
+
+
 # ---------------------------------------------------------------------------
 # Run-all driver
 # ---------------------------------------------------------------------------
 
 def run_all(ci_root: Path, tutorials_root: Path) -> None:
     """Process all tutorial CSVs. Each call below handles one input file."""
-    process_ap_ratio(ci_root, tutorials_root)
-    process_ap_ratio_norm_pam50(ci_root, tutorials_root)
-    process_csa_c3c4(ci_root, tutorials_root)
-    process_csa_perlevel(ci_root, tutorials_root)
-    process_csa_perslice(ci_root, tutorials_root)
-    process_csa_pmj(ci_root, tutorials_root)
-    process_fa_in_wm(ci_root, tutorials_root)
-    process_mtr_in_cst(ci_root, tutorials_root)
-    process_mtr_in_dc(ci_root, tutorials_root)
-    process_mtr_in_wm(ci_root, tutorials_root)
-    process_t2s_value(ci_root, tutorials_root)
+
+    # Single-subject CSV files
+    ci_root_single = ci_root / "Single Subject CSV Files"
+    process_ap_ratio(ci_root_single, tutorials_root)
+    process_ap_ratio_norm_pam50(ci_root_single, tutorials_root)
+    process_csa_c3c4(ci_root_single, tutorials_root)
+    process_csa_perlevel(ci_root_single, tutorials_root)
+    process_csa_perslice(ci_root_single, tutorials_root)
+    process_csa_pmj(ci_root_single, tutorials_root)
+    process_fa_in_wm(ci_root_single, tutorials_root)
+    process_mtr_in_cst(ci_root_single, tutorials_root)
+    process_mtr_in_dc(ci_root_single, tutorials_root)
+    process_mtr_in_wm(ci_root_single, tutorials_root)
+    process_t2s_value(ci_root_single, tutorials_root)
+
+    # Multi-subject CSV files
+    ci_root_multi = ci_root / "Multi Subject CSV Files"
+    process_multi_subject(ci_root_multi, tutorials_root)
 
 
 # ---------------------------------------------------------------------------
@@ -264,7 +287,7 @@ def main() -> None:
         "--input-dir",
         default=None,
         metavar="DIR",
-        help="Root of the CI-downloaded CSV tree (default: './Single Subject CSV Files/' in CWD).",
+        help="Root of the CI-downloaded CSV tree (default: './csvs/' in CWD).",
     )
     parser.add_argument(
         "--output-dir",
@@ -274,7 +297,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    ci_root = Path(args.input_dir) if args.input_dir else Path.cwd() / "Single Subject CSV Files"
+    ci_root = Path(args.input_dir) if args.input_dir else Path.cwd() / "csvs"
 
     if args.output_dir:
         tutorials_root = Path(args.output_dir)
