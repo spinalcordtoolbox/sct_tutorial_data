@@ -85,8 +85,8 @@ sct_label_vertebrae -i t2.nii.gz -s t2_seg.nii.gz -c t2 -discfile t2_totalspines
 
 # Compute cross-sectional area (CSA) of spinal cord and average it across levels C3 and C4
 sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -discfile t2_totalspineseg_discs.nii.gz -o csa_c3c4.csv
-# Aggregate CSA value per level
-sct_process_segmentation -i t2_seg.nii.gz -vert 3:4 -discfile t2_totalspineseg_discs.nii.gz -perlevel 1 -o csa_perlevel.csv
+# Aggregate CSA value per level (including new anat-based symmetry metrics)
+sct_process_segmentation -i t2_seg.nii.gz -anat t2.nii.gz -vert 3:4 -discfile t2_totalspineseg_discs.nii.gz -perlevel 1 -o csa_perlevel.csv
 # Aggregate CSA value per slices
 sct_process_segmentation -i t2_seg.nii.gz -z 30:35 -discfile t2_totalspineseg_discs.nii.gz -perslice 1 -o csa_perslice.csv
 
