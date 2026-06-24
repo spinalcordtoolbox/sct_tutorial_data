@@ -34,6 +34,7 @@ jobs:
     - name: Checkout spinalcordtoolbox
       uses: actions/checkout@v4
       with:
+        ref: jn/3508-merge-example-datasets-and-batch-scripts
         repository: spinalcordtoolbox/spinalcordtoolbox
         path: spinalcordtoolbox
 
