@@ -124,8 +124,8 @@ def process_ap_ratio_norm_pam50(ci_root: Path, tutorials_root: Path) -> None:
 def process_csa_c3c4(ci_root: Path, tutorials_root: Path) -> None:
     out = tutorials_root / "shape-analysis/compute-csa-and-other-shape-metrics"
     process(
-        ci_root / "t2/csa_c3c4.csv",
-        out / "csa_c3c4.csv",
+        ci_root / "t2/csa_c2c3.csv",
+        out / "csa_c2c3.csv",
         keep_cols=["Filename", "Slice (I->S)", "VertLevel", "MEAN(area)", "STD(area)"],
         conditional_vertlevel=True,
     )
