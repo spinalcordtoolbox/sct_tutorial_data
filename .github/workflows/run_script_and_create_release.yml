@@ -26,13 +26,19 @@ on:
         description: 'Release title (e.g. rYYYYMMDD)'
         required: true
 
+env:
+  # Hardcoding this variable just to make accessing the output files a bit simpler (for testing)
+  # See: https://github.com/spinalcordtoolbox/sct_tutorial_data/actions/runs/28119017640/job/83265838588?pr=35#step:3:43
+  # Also: https://github.com/orgs/community/discussions/25576#discussioncomment-3248364
+  SCT_DIR: "${{ github.workspace }}/spinalcordtoolbox"
+
 jobs:
   run-course-script:
     runs-on: ubuntu-latest
     steps:
 
     - name: Checkout spinalcordtoolbox
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: spinalcordtoolbox/spinalcordtoolbox
         path: spinalcordtoolbox
@@ -56,6 +62,9 @@ jobs:
         path: ${{ github.event.repository.name }}
 
     - name: Run batch_single_subject.sh to generate intermediate files
+      # NB: SCT's copy of batch_single_subject.sh is standalone and cds into SCT_DIR
+      # So, even though we run the script here, the output files will be generated elsewhere
+      # This is just temporary for testing purposes, so don't commit these changes.
       run: |
         cd "${{ github.event.repository.name }}/single_subject"
         ./batch_single_subject.sh
@@ -70,11 +79,11 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Single Subject CSV Files
-        path: ${{ github.event.repository.name }}/single_subject/data/**/*.csv
+        path: ${{ env.SCT_DIR }}/data/sct_course_data/single_subject/data/**/*.csv
 
     - name: "Package data into tutorial-specific .zip files"
       run: |
-        cd ${{ github.event.repository.name }}
+        cd "${{ env.SCT_DIR }}/data/sct_course_data/"
         awk -F, '{ print $1,$2 }' tutorial-datasets.csv | xargs -l zip -ur
 
     - uses: ncipollo/release-action@v1
@@ -92,7 +101,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        file: "${{ github.event.repository.name }}/*.zip"
+        file: "${{ env.SCT_DIR }}/data/sct_course_data/*.zip"
         draft: false
         tag_name: ${{ github.event.inputs.release_title }}
         release_id: ${{ steps.create_release.outputs.id }}
